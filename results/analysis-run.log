@@ -1,0 +1,325 @@
+{
+  "groups": {
+    "dynamic": [
+      "WALKING",
+      "WALKING_DOWNSTAIRS",
+      "WALKING_UPSTAIRS"
+    ],
+    "static": [
+      "LAYING",
+      "SITTING",
+      "STANDING"
+    ],
+    "counts": {
+      "dynamic": 4672,
+      "static": 5627
+    }
+  },
+  "original_neighbor_purity": {
+    "static_dynamic_k10": 0.999543645014079,
+    "six_activities_k10": 0.9083017768715409
+  },
+  "pca_explained_variance": [
+    0.5073822099123227,
+    0.06239185738671585,
+    0.026925638711850504,
+    0.024528709772483417,
+    0.01888935672819711,
+    0.01631395408208246,
+    0.014145332356296687,
+    0.012162106188253644,
+    0.009852475655730938,
+    0.009492281905372104
+  ],
+  "pca_top_correlations": {
+    "pc1": [
+      {
+        "feature": "fBodyAcc-sma()",
+        "correlation": 0.9889282172556675
+      },
+      {
+        "feature": "fBodyAccJerk-sma()",
+        "correlation": 0.9882851804253178
+      },
+      {
+        "feature": "fBodyGyro-sma()",
+        "correlation": 0.9878669621679698
+      },
+      {
+        "feature": "tBodyAccJerk-sma()",
+        "correlation": 0.9877967837981652
+      },
+      {
+        "feature": "tBodyAccJerkMag-mean()",
+        "correlation": 0.9868902357640132
+      },
+      {
+        "feature": "tBodyAccJerkMag-sma()",
+        "correlation": 0.9868902357640132
+      },
+      {
+        "feature": "fBodyBodyAccJerkMag-sma()",
+        "correlation": 0.9803560376810373
+      },
+      {
+        "feature": "fBodyBodyAccJerkMag-mean()",
+        "correlation": 0.9803560376810373
+      },
+      {
+        "feature": "tBodyAccJerkMag-mad()",
+        "correlation": 0.9785807486941143
+      },
+      {
+        "feature": "tBodyAccJerkMag-std()",
+        "correlation": 0.9780801992182887
+      }
+    ],
+    "pc2": [
+      {
+        "feature": "fBodyAcc-meanFreq()-Z",
+        "correlation": 0.7359409609962505
+      },
+      {
+        "feature": "tBodyGyroMag-arCoeff()1",
+        "correlation": 0.7133977284571434
+      },
+      {
+        "feature": "fBodyAccMag-meanFreq()",
+        "correlation": 0.7080971677243749
+      },
+      {
+        "feature": "tGravityAcc-arCoeff()-Z,1",
+        "correlation": 0.7075567849047689
+      },
+      {
+        "feature": "tBodyAccMag-arCoeff()1",
+        "correlation": 0.7068318161368702
+      },
+      {
+        "feature": "tGravityAccMag-arCoeff()1",
+        "correlation": 0.706831816136868
+      },
+      {
+        "feature": "tGravityAcc-arCoeff()-Z,2",
+        "correlation": -0.7056662250781599
+      },
+      {
+        "feature": "tGravityAcc-arCoeff()-Z,3",
+        "correlation": 0.6957504810908579
+      },
+      {
+        "feature": "tGravityAcc-arCoeff()-Z,4",
+        "correlation": -0.6771070460280224
+      },
+      {
+        "feature": "tBodyGyroMag-arCoeff()2",
+        "correlation": -0.66745697077905
+      }
+    ]
+  },
+  "top_dynamic_static_features": [
+    {
+      "feature": "fBodyAccJerk-entropy()-X",
+      "dynamic_minus_static_z": 1.962955145993953
+    },
+    {
+      "feature": "fBodyAccJerk-entropy()-Y",
+      "dynamic_minus_static_z": 1.9494241217631854
+    },
+    {
+      "feature": "tBodyAccJerkMag-entropy()",
+      "dynamic_minus_static_z": 1.9443279696543705
+    },
+    {
+      "feature": "tBodyAccJerk-entropy()-X",
+      "dynamic_minus_static_z": 1.9428050702398543
+    },
+    {
+      "feature": "fBodyAcc-entropy()-X",
+      "dynamic_minus_static_z": 1.9412602381002615
+    },
+    {
+      "feature": "fBodyBodyAccJerkMag-entropy()",
+      "dynamic_minus_static_z": 1.936918176113287
+    },
+    {
+      "feature": "tBodyAccJerk-entropy()-Z",
+      "dynamic_minus_static_z": 1.9326816058636531
+    },
+    {
+      "feature": "tBodyAccJerk-entropy()-Y",
+      "dynamic_minus_static_z": 1.9288480565358843
+    },
+    {
+      "feature": "fBodyAccJerk-entropy()-Z",
+      "dynamic_minus_static_z": 1.9213822380311756
+    },
+    {
+      "feature": "fBodyAcc-entropy()-Y",
+      "dynamic_minus_static_z": 1.9137195403651202
+    },
+    {
+      "feature": "fBodyAccMag-entropy()",
+      "dynamic_minus_static_z": 1.9076469028994627
+    },
+    {
+      "feature": "tBodyGyroJerk-entropy()-Z",
+      "dynamic_minus_static_z": 1.9012109273960813
+    },
+    {
+      "feature": "tBodyAcc-sma()",
+      "dynamic_minus_static_z": 1.9006639012148745
+    },
+    {
+      "feature": "fBodyAcc-entropy()-Z",
+      "dynamic_minus_static_z": 1.8999639041670051
+    },
+    {
+      "feature": "fBodyAcc-sma()",
+      "dynamic_minus_static_z": 1.8976025250424406
+    }
+  ],
+  "embeddings": {
+    "pca": {
+      "silhouette_static_dynamic": 0.7002750756072609,
+      "silhouette_six_activities": 0.016187312068954646,
+      "neighbor_purity_static_dynamic_k10": 0.9977959025148072,
+      "neighbor_purity_six_activities_k10": 0.4989028060976794,
+      "centroid_separation_ratio": 3.444984340780447,
+      "current_axis_effect_dynamic_minus_static": [
+        4.521449157596123,
+        -0.34959840317101853
+      ],
+      "class_centroids": {
+        "LAYING": [
+          -14.5636,
+          2.1341
+        ],
+        "SITTING": [
+          -14.23,
+          0.83
+        ],
+        "STANDING": [
+          -13.6267,
+          -0.1917
+        ],
+        "WALKING": [
+          15.8177,
+          1.2368
+        ],
+        "WALKING_DOWNSTAIRS": [
+          23.3244,
+          2.1259
+        ],
+        "WALKING_UPSTAIRS": [
+          12.6546,
+          -6.721
+        ]
+      },
+      "macro_centroids": {
+        "static": [
+          -14.1409,
+          0.9345
+        ],
+        "dynamic": [
+          17.0314,
+          -1.1255
+        ]
+      }
+    },
+    "tsne": {
+      "silhouette_static_dynamic": 0.41264612999488925,
+      "silhouette_six_activities": 0.2369853145928122,
+      "neighbor_purity_static_dynamic_k10": 0.9993300320419458,
+      "neighbor_purity_six_activities_k10": 0.9081852607049228,
+      "centroid_separation_ratio": 1.8355925508753723,
+      "current_axis_effect_dynamic_minus_static": [
+        3.6275853651937604,
+        0.0818619040802419
+      ],
+      "class_centroids": {
+        "LAYING": [
+          -35.5277,
+          42.8327
+        ],
+        "SITTING": [
+          -30.7703,
+          -15.3842
+        ],
+        "STANDING": [
+          -38.9394,
+          -32.3836
+        ],
+        "WALKING": [
+          28.7726,
+          23.068
+        ],
+        "WALKING_DOWNSTAIRS": [
+          58.6997,
+          15.3953
+        ],
+        "WALKING_UPSTAIRS": [
+          42.3118,
+          -33.8394
+        ]
+      },
+      "macro_centroids": {
+        "static": [
+          -35.1809,
+          -1.0297
+        ],
+        "dynamic": [
+          42.2533,
+          1.9523
+        ]
+      }
+    },
+    "umap": {
+      "silhouette_static_dynamic": 0.7013323185071731,
+      "silhouette_six_activities": 0.24566083116379406,
+      "neighbor_purity_static_dynamic_k10": 0.9994368385280125,
+      "neighbor_purity_six_activities_k10": 0.8676376347218177,
+      "centroid_separation_ratio": 3.8521917384895166,
+      "current_axis_effect_dynamic_minus_static": [
+        -8.438394035202833,
+        -0.37285373300537616
+      ],
+      "class_centroids": {
+        "LAYING": [
+          10.4064,
+          2.7751
+        ],
+        "SITTING": [
+          12.511,
+          9.4822
+        ],
+        "STANDING": [
+          11.8978,
+          10.0193
+        ],
+        "WALKING": [
+          -2.403,
+          5.0641
+        ],
+        "WALKING_DOWNSTAIRS": [
+          -1.264,
+          5.1517
+        ],
+        "WALKING_UPSTAIRS": [
+          -0.748,
+          8.4647
+        ]
+      },
+      "macro_centroids": {
+        "static": [
+          11.5762,
+          7.347
+        ],
+        "dynamic": [
+          -1.5133,
+          6.2143
+        ]
+      }
+    }
+  }
+}

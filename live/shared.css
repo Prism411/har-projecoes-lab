@@ -1,0 +1,135 @@
+:root {
+  color-scheme: light;
+  --ink: #121212;
+  --muted: #565650;
+  --line: #c9c9c3;
+  --line-soft: #e5e5e0;
+  --surface: #ffffff;
+  --surface-alt: #f5f5f2;
+  --blue: #0072b2;
+  --blue-dark: #005987;
+  --orange: #d55e00;
+  --green: #007a59;
+  --red: #b42318;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+select,
+input {
+  font: inherit;
+}
+
+button,
+select {
+  min-height: 44px;
+  border: 1.5px solid var(--ink);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+button {
+  padding: 0.75rem 1rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--surface);
+}
+
+button.secondary {
+  border-color: var(--blue-dark);
+  color: var(--blue-dark);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+button:focus-visible,
+select:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.status-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  background: var(--line);
+}
+
+.status-dot[data-state="ok"] {
+  background: var(--green);
+}
+
+.status-dot[data-state="warn"] {
+  background: #f0b429;
+}
+
+.status-dot[data-state="error"] {
+  background: var(--red);
+}
+
+.notice {
+  border: 1px solid var(--line);
+  padding: 0.85rem 0.95rem;
+  background: var(--surface-alt);
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.notice[data-tone="error"] {
+  border-color: var(--red);
+  color: #701d16;
+  background: #fff4f2;
+}
+
+.notice[data-tone="success"] {
+  border-color: var(--green);
+  color: #075f49;
+  background: #f0faf6;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

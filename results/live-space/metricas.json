@@ -1,0 +1,15 @@
+{
+  "janelas": 10299,
+  "caracteristicas": 128,
+  "variancia_pca": 0.9802,
+  "silhueta_pca50": 0.0315,
+  "silhueta_umap": 0.1066,
+  "acuracia_knn10": 0.8267,
+  "semente": 42,
+  "parametros": {
+    "componentes_pca": 50,
+    "vizinhos_umap": 30,
+    "distancia_minima_umap": 0.1
+  },
+  "observacao": "Espaço separado da vista oficial de 561 características. Rótulos não participam do ajuste; entram apenas nas métricas."
+}

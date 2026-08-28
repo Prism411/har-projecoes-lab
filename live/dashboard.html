@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Participante 31 — monitor ao vivo</title>
+  <link rel="stylesheet" href="/assets/shared.css">
+  <link rel="stylesheet" href="/assets/dashboard.css">
+  <script src="/assets/dashboard.js" defer></script>
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">HAR / transmissão do iPhone</p>
+        <h1>Participante 31</h1>
+      </div>
+      <div class="live-state">
+        <span id="live-dot" class="status-dot"></span>
+        <div><strong id="live-label">Aguardando iPhone</strong><span id="session-label">sessão P31</span></div>
+      </div>
+    </header>
+
+    <section class="metric-strip" aria-label="Qualidade da transmissão">
+      <div><span>Taxa observada</span><strong id="rate-value" class="mono">0,0 Hz</strong></div>
+      <div><span>Lote mais recente</span><strong id="batch-value" class="mono">0 amostras</strong></div>
+      <div><span>Relay servidor → tela</span><strong id="latency-value" class="mono">—</strong></div>
+      <div><span>Gravação</span><strong id="recording-value">inativa</strong></div>
+    </section>
+
+    <section class="monitor-grid">
+      <article class="phone-panel">
+        <header>
+          <h2>Aparelho medido</h2>
+          <p>Orientação ilustrada com os ângulos enviados pelo navegador.</p>
+        </header>
+        <div class="phone-stage">
+          <div id="phone-model" class="phone-model">
+            <div class="phone-screen"><span>31</span></div>
+          </div>
+          <span class="world-axis world-x">X</span>
+          <span class="world-axis world-y">Y</span>
+          <span class="world-axis world-z">Z</span>
+        </div>
+        <dl class="orientation-values">
+          <div><dt>α</dt><dd id="alpha-value" class="mono">—</dd></div>
+          <div><dt>β</dt><dd id="beta-value" class="mono">—</dd></div>
+          <div><dt>γ</dt><dd id="gamma-value" class="mono">—</dd></div>
+        </dl>
+      </article>
+
+      <article class="signal-panel">
+        <header>
+          <div>
+            <h2>Sinais recebidos</h2>
+            <p>Últimos cinco segundos; X, Y e Z pertencem ao iPhone.</p>
+          </div>
+          <div class="legend" aria-label="Legenda dos eixos"><span class="x">X</span><span class="y">Y</span><span class="z">Z</span></div>
+        </header>
+        <div class="canvas-block">
+          <span>Aceleração linear; com gravidade como fallback · m/s²</span>
+          <canvas id="acceleration-chart" width="960" height="250"></canvas>
+        </div>
+        <div class="canvas-block">
+          <span>Rotação · °/s</span>
+          <canvas id="rotation-chart" width="960" height="250"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="window-section">
+      <div>
+        <p class="eyebrow">Janela em formação</p>
+        <h2>Buffer bruto antes da reamostragem</h2>
+        <p>Cada 2,56 segundos viram uma janela HAR: os sinais são reamostrados a 50 Hz e passam pelo mesmo extrator de características usado nas 10.299 janelas do experimento original.</p>
+      </div>
+      <div class="window-progress" aria-label="Preenchimento da janela atual">
+        <div><span id="window-fill"></span></div>
+        <strong id="window-label" class="mono">0,00 / 2,56 s</strong>
+      </div>
+    </section>
+
+    <section class="mapa-section" aria-labelledby="mapa-titulo">
+      <header class="mapa-cabecalho">
+        <div>
+          <p class="eyebrow">HAR live · espaço de características comuns</p>
+          <h2 id="mapa-titulo">Seu movimento no mapa</h2>
+          <p>Ao encerrar a gravação, cada janela sua é projetada no mesmo espaço das 10.299 janelas do experimento. Este mapa é <strong>separado</strong> da vista oficial de 561 características: aqui o scaler, o PCA e o UMAP foram ajustados sobre características extraídas igualmente dos dois lados, e a sua gravação passa por <code>transform()</code> — nada é reajustado com ela.</p>
+        </div>
+        <div class="mapa-situacao">
+          <span id="mapa-situacao-rotulo" class="situacao" data-state="vazio">sem gravação</span>
+          <span id="mapa-situacao-detalhe">Grave no iPhone para aparecer aqui.</span>
+        </div>
+      </header>
+
+      <div class="mapa-grade">
+        <div class="mapa-tela">
+          <canvas id="mapa-canvas" width="1400" height="820" role="img"
+                  aria-label="Projeção UMAP das janelas do HAR com a gravação atual em destaque"></canvas>
+        </div>
+        <aside class="mapa-lado">
+          <div class="mapa-bloco">
+            <h3>Vizinhança no HAR</h3>
+            <p class="mapa-ajuda">Atividades das janelas originais mais próximas das suas.</p>
+            <ul id="mapa-vizinhanca" class="mapa-lista"><li class="vazio">—</li></ul>
+          </div>
+          <div class="mapa-bloco">
+            <h3>Atividades</h3>
+            <ul id="mapa-legenda" class="mapa-legenda"></ul>
+          </div>
+          <div class="mapa-bloco">
+            <h3>Leitura honesta</h3>
+            <p class="mapa-ajuda">O iPhone não é o Galaxy S II do experimento. Distância grande significa mudança de domínio, não atividade errada.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div id="dashboard-message" class="notice" role="status" aria-live="polite">
+      Abra no iPhone a URL HTTPS completa fornecida pelo servidor, com sessão e token temporário.
+    </div>
+  </main>
+</body>
+</html>

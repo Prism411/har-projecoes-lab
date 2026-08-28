@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./vendor/react.production.min.js"></script>
+<script src="./vendor/react-dom.production.min.js"></script>
+<script src="./support.js"></script>
+<script src="./har-data.js"></script>
+<script src="./har-live-data.js"></script>
+<script src="./har-live-gravacoes.js"></script>
+<script src="./vendor/plotly-gl3d.min.js"></script>
+<script src="./vendor/echarts.min.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#FFFFFF}
+  body{font-family:"Helvetica Neue",Helvetica,"Segoe UI",sans-serif;color:#121212;-webkit-font-smoothing:antialiased}
+  button,select,input{font-family:inherit}
+  a{color:#121212;text-decoration:underline;text-underline-offset:2px}
+  a:hover{color:#8A3E12}
+  *:focus-visible{outline:3px solid #121212;outline-offset:2px}
+  table{border-collapse:collapse}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+button,select,input{transition:filter 180ms ease,transform 120ms ease,outline-color 180ms ease}
+button:hover:not(:disabled),select:hover,input:hover{filter:brightness(.96)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #0072B2;outline-offset:2px}
+.dual-range{position:relative;width:250px;height:28px;flex:0 0 250px}
+.dual-range-track,.dual-range-fill{position:absolute;left:0;right:0;top:12px;height:4px;border-radius:999px}
+.dual-range-track{background:#D8D8D3;border:1px solid #B8B8B2}
+.dual-range-fill{background:#0072B2;border:1px solid #005987}
+.dual-range input[type=range]{position:absolute;left:0;top:2px;width:100%;height:24px;margin:0;padding:0;appearance:none;-webkit-appearance:none;background:transparent;pointer-events:none;outline:none}
+.dual-range input[type=range]::-webkit-slider-runnable-track{height:4px;background:transparent}
+.dual-range input[type=range]::-moz-range-track{height:4px;background:transparent}
+.dual-range input[type=range]::-webkit-slider-thumb{width:18px;height:18px;margin-top:-7px;border:2px solid #121212;border-radius:50%;background:#FFFFFF;box-shadow:0 0 0 2px #FFFFFF;appearance:none;-webkit-appearance:none;pointer-events:auto;cursor:grab}
+.dual-range input[type=range]::-moz-range-thumb{width:14px;height:14px;border:2px solid #121212;border-radius:50%;background:#FFFFFF;box-shadow:0 0 0 2px #FFFFFF;pointer-events:auto;cursor:grab}
+.dual-range input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 3px #FFFFFF,0 0 0 6px #0072B2}
+.dual-range input[type=range]:focus-visible::-moz-range-thumb{box-shadow:0 0 0 3px #FFFFFF,0 0 0 6px #0072B2}
+.inspector-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:12px}
+.inspector-card{border:1px solid #D8D8D3;background:#FFFFFF;min-width:0}
+.inspector-card-head{padding:9px 11px;border-bottom:1px solid #E4E4E0;background:#FAFAF8}
+.inspector-kicker{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700}
+.inspector-meta{display:grid;grid-template-columns:repeat(6,minmax(110px,1fr));border-top:1px solid #D8D8D3;border-left:1px solid #D8D8D3}
+.inspector-meta>div{padding:8px 10px;border-right:1px solid #D8D8D3;border-bottom:1px solid #D8D8D3;min-width:0}
+.inspector-chart{height:270px;width:100%}
+@media(max-width:1050px){.inspector-grid{grid-template-columns:1fr}.inspector-meta{grid-template-columns:repeat(3,minmax(110px,1fr))}}
+@media(max-width:680px){.inspector-meta{grid-template-columns:repeat(2,minmax(110px,1fr))}.inspector-chart{height:245px}}
+</style>
+
+</helmet>
+<div style="height:100dvh;min-height:100dvh;overflow:hidden;display:flex;flex-direction:column;background:#FFFFFF;color:#121212;font-size:15px;line-height:1.45">
+
+  <header style="flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:10px 20px 8px;border-bottom:2px solid #121212;background:#FFFFFF">
+    <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5F5F59;font-weight:700">Laboratório de projeções · redução de dimensionalidade</div>
+      <h1 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dsNome }}</h1>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto">
+      <span style="font-size:12px;color:#5F5F59;font-variant-numeric:tabular-nums">{{ dsResumo }}</span>
+      <div role="group" aria-label="Modo de uso" style="display:flex;gap:4px">
+        <sc-for list="{{ segModo }}" as="o" hint-placeholder-count="2">
+          <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1.5px solid #121212;padding:7px 12px;font-size:13px;font-weight:700;cursor:pointer;border-radius:2px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <sc-if value="{{ erro }}" hint-placeholder-val="{{ false }}">
+    <div role="alert" style="flex:0 0 auto;padding:10px 20px;background:#FFF3E6;border-bottom:1px solid #D55E00;font-size:14px">{{ erro }}</div>
+  </sc-if>
+
+  <div style="flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:7px 20px;padding:7px 20px;border-bottom:1px solid #D8D8D3;background:#F5F5F3">
+    <sc-if value="{{ ehLab }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700">Vista</span>
+        <div role="group" aria-label="Vista" style="display:flex;gap:4px;flex-wrap:wrap">
+          <sc-for list="{{ segVista }}" as="o" hint-placeholder-count="3">
+            <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700">Cor por</span>
+      <div role="group" aria-label="Cor por" style="display:flex;gap:4px">
+        <sc-for list="{{ segCor }}" as="o" hint-placeholder-count="3">
+          <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <label for="cvd" style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700">Visão de cores</label>
+      <select id="cvd" value="{{ cvdValor }}" onChange="{{ onCvd }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;font-size:12.5px;padding:5px 6px;border-radius:2px">
+        <sc-for list="{{ cvdOpcoes }}" as="o" hint-placeholder-count="5">
+          <option value="{{ o.v }}">{{ o.label }}</option>
+        </sc-for>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button type="button" onClick="{{ btnLente.on }}" aria-pressed="{{ btnLente.pressed }}" style="display:{{ displayControles2d }};border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ btnLente.bg }};color:{{ btnLente.fg }}">Lente de vizinhança</button>
+      <sc-if value="{{ ehLab }}" hint-placeholder-val="{{ true }}">
+        <button type="button" onClick="{{ btnLigacoes.on }}" aria-pressed="{{ btnLigacoes.pressed }}" style="display:{{ displayControles2d }};border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ btnLigacoes.bg }};color:{{ btnLigacoes.fg }}">Ligações</button>
+        <button type="button" onClick="{{ btnAvancado.on }}" aria-expanded="{{ btnAvancado.pressed }}" style="border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ btnAvancado.bg }};color:{{ btnAvancado.fg }}">Controles avançados</button>
+      </sc-if>
+    </div>
+    <sc-if value="{{ ehMorph }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:8px;padding-left:4px;border-left:1px solid #D8D8D3">
+        <button type="button" onClick="{{ btnMorph.on }}" aria-pressed="{{ btnMorph.pressed }}" style="border:1px solid #121212;padding:5px 12px;font-size:12.5px;font-weight:700;cursor:pointer;border-radius:2px;background:{{ btnMorph.bg }};color:{{ btnMorph.fg }}">{{ btnMorph.label }}</button>
+        <div role="group" aria-label="Duração da transição" style="display:flex;gap:4px">
+          <sc-for list="{{ segMs }}" as="o" hint-placeholder-count="3">
+            <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1px solid #121212;padding:5px 8px;font-size:12px;font-weight:600;cursor:pointer;border-radius:2px;font-variant-numeric:tabular-nums;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <span style="font-size:12px;color:#5F5F59">{{ morphNota }}</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ ehLab }}" hint-placeholder-val="{{ true }}">
+    <div aria-label="Filtros do dataset" style="flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:7px 16px;padding:7px 20px;border-bottom:1px solid #D8D8D3;background:#FFFFFF">
+      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700">Filtrar amostras</span>
+      <div role="group" aria-labelledby="faixa-participantes-label" style="display:flex;align-items:center;gap:10px;min-width:390px">
+        <span id="faixa-participantes-label" style="font-size:12.5px;font-weight:600">Participantes</span>
+        <div class="dual-range">
+          <div class="dual-range-track" aria-hidden="true"></div>
+          <div class="dual-range-fill" aria-hidden="true" style="left:{{ faixaInicioPct }}%;right:{{ faixaFimPct }}%"></div>
+          <input id="filtro-sujeito-min" type="range" min="1" max="{{ maxSujeito }}" step="1" value="{{ filtroSujeitoMinValor }}" onChange="{{ onFiltroSujeitoMin }}" aria-label="Primeiro participante da faixa" aria-valuetext="{{ filtroSujeitoMinTexto }}" style="z-index:{{ faixaMinZ }}">
+          <input id="filtro-sujeito-max" type="range" min="1" max="{{ maxSujeito }}" step="1" value="{{ filtroSujeitoMaxValor }}" onChange="{{ onFiltroSujeitoMax }}" aria-label="Último participante da faixa" aria-valuetext="{{ filtroSujeitoMaxTexto }}" style="z-index:{{ faixaMaxZ }}">
+        </div>
+        <output for="filtro-sujeito-min filtro-sujeito-max" style="min-width:84px;font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums">{{ faixaRotulo }}</output>
+      </div>
+      <label for="filtro-split" style="display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600">Conjunto
+        <select id="filtro-split" value="{{ filtroSplitValor }}" onChange="{{ onFiltroSplit }}" style="min-width:150px;border:1px solid #121212;background:#FFFFFF;color:#121212;font-size:12.5px;padding:5px 7px;border-radius:2px">
+          <sc-for list="{{ filtroSplitOpcoes }}" as="o" hint-placeholder-count="3">
+            <option value="{{ o.v }}">{{ o.label }}</option>
+          </sc-for>
+        </select>
+      </label>
+      <span role="status" style="font-size:12.5px;color:#3F3F3B;font-variant-numeric:tabular-nums">{{ filtroResumo }}</span>
+      <button type="button" onClick="{{ onLimparFiltros }}" disabled="{{ filtrosLimpos }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;opacity:{{ opLimparFiltros }}">Limpar filtros</button>
+      <span style="font-size:12px;color:#5F5F59">Atividades: clique nos itens da legenda.</span>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ avancadoAberto }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;padding:10px 20px;border-bottom:1px solid #D8D8D3;background:#FFFFFF">
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px">Tamanho do ponto
+        <input type="range" min="5" max="18" step="1" value="{{ pontoValor }}" onChange="{{ onPonto }}" style="width:120px">
+        <b style="font-variant-numeric:tabular-nums">{{ pontoValor }}</b>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;font-size:12.5px">Atenuação dos não selecionados
+        <input type="range" min="5" max="60" step="1" value="{{ atenValor }}" onChange="{{ onAten }}" style="width:120px">
+        <b style="font-variant-numeric:tabular-nums">{{ atenValor }}%</b>
+      </label>
+      <button type="button" onClick="{{ btnRotulo.on }}" aria-pressed="{{ btnRotulo.pressed }}" style="border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ btnRotulo.bg }};color:{{ btnRotulo.fg }}">Rótulo do id no gráfico</button>
+      <span style="font-size:12px;color:#5F5F59;max-width:64ch;text-wrap:pretty">Clique seleciona (shift soma); arraste move o enquadramento e a roda do mouse dá zoom em cada painel; laço/retângulo ficam no canto do painel. Esc solta a ferramenta e limpa; Reenquadrar volta ao enquadramento original.</span>
+    </div>
+  </sc-if>
+
+  <main style="flex:1 1 auto;min-height:0;overflow:auto;display:flex;flex-direction:column;padding:0 20px;background:#FFFFFF">
+
+    <sc-if value="{{ ehApresentacao }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:0 0 auto;display:flex;align-items:baseline;justify-content:space-between;gap:28px;padding:clamp(8px,1.6vh,16px) 0 6px">
+        <div style="min-width:0">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#5F5F59;font-weight:700;font-variant-numeric:tabular-nums">Cena {{ cenaNum }} de {{ cenaTotal }}</div>
+          <h2 style="margin:2px 0 0;font-size:clamp(21px,3.6vh,34px);font-weight:700;letter-spacing:-.02em;line-height:1.15">{{ cenaTitulo }}</h2>
+          <p style="margin:4px 0 0;font-size:clamp(13.5px,1.9vh,19px);color:#3F3F3B;max-width:110ch;line-height:1.4;text-wrap:pretty">{{ cenaNota }}</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:0 0 auto">
+          <button type="button" onClick="{{ onAnt }}" disabled="{{ semAnt }}" aria-label="Cena anterior" style="border:1.5px solid #121212;background:#FFFFFF;color:#121212;padding:7px 13px;font-size:15px;font-weight:700;cursor:pointer;border-radius:2px">←</button>
+          <button type="button" onClick="{{ onProx }}" disabled="{{ semProx }}" aria-label="Próxima cena" style="border:1.5px solid #121212;background:#121212;color:#FFFFFF;padding:7px 13px;font-size:15px;font-weight:700;cursor:pointer;border-radius:2px">→</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mostraMetodoNota }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:0 0 auto;display:flex;align-items:baseline;gap:12px;padding:8px 0 4px;border-bottom:1px solid #D8D8D3">
+        <span class="inspector-kicker">Demonstração do método</span>
+        <strong style="font-size:15px">{{ metodoTitulo }}</strong>
+        <span style="font-size:12.5px;color:#3F3F3B;text-wrap:pretty">{{ metodoNota }}</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ehFicha }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2.6vh,26px);padding:10px 0 20px">
+        <div style="display:flex;flex-wrap:wrap;gap:14px">
+          <sc-for list="{{ fichaNumeros }}" as="f" hint-placeholder-count="4">
+            <div style="flex:1 1 200px;border:1px solid #D8D8D3;border-top:3px solid #121212;padding:clamp(10px,1.8vh,16px) 18px;background:#FFFFFF">
+              <div style="font-size:clamp(28px,5vh,46px);font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">{{ f.n }}</div>
+              <div style="font-size:14px;color:#3F3F3B;margin-top:6px">{{ f.rot }}</div>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start">
+          <div style="flex:1 1 460px;max-width:80ch">
+            <p style="margin:0 0 10px;font-size:17px;text-wrap:pretty">Trinta participantes com um smartphone na cintura. Cada amostra é uma janela de sinais de acelerômetro e giroscópio descrita por 561 atributos, rotulada com uma das seis atividades. Nenhuma projeção é calculada aqui: as coordenadas 2D, os vizinhos em 561 dimensões e as métricas foram computados em Python e entram como dado fixo.</p>
+            <p style="margin:0;font-size:13px;color:#5F5F59">Fonte: {{ dsFonte }} · Arquivo carregado agora: {{ nCarregadas }} amostras reais processadas pelo pipeline Python.</p>
+          </div>
+          <div style="flex:0 1 340px;border:1px solid #D8D8D3;padding:14px 16px;background:#F5F5F3">
+            <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700;margin-bottom:8px">Seis atividades</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <sc-for list="{{ legenda }}" as="c" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:9px;font-size:14px">
+                  <span aria-hidden="true" style="width:17px;text-align:center;flex:0 0 auto;color:{{ c.cor }};font-size:17px;line-height:1;text-shadow:0 0 0 #121212">{{ c.glifoTexto }}</span>
+                  <span>{{ c.label }}</span>
+                  <span style="color:#5F5F59;font-variant-numeric:tabular-nums">{{ c.n }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ehEncerramento }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1 1 auto;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:8px 0 18px;max-width:105ch">
+        <div style="display:flex;flex-direction:column;gap:clamp(6px,1.2vh,12px)">
+          <sc-for list="{{ avisos }}" as="a" hint-placeholder-count="6">
+            <div style="display:flex;gap:14px;align-items:flex-start;border-top:1px solid #D8D8D3;padding-top:12px">
+              <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:#5F5F59;font-variant-numeric:tabular-nums;padding-top:4px">{{ a.n }}</span>
+              <p style="margin:0;font-size:clamp(14.5px,2.2vh,21px);line-height:1.4;text-wrap:pretty">{{ a.t }}</p>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ehUmap3d }}" hint-placeholder-val="{{ false }}">
+      <section data-testid="umap-3d" style="flex:1 1 auto;min-height:420px;display:flex;flex-direction:column;border:1px solid #D8D8D3;background:#FFFFFF;margin:6px 0 8px">
+        <header style="flex:0 0 auto;padding:9px 12px;border-bottom:1px solid #E4E4E0;background:#FAFAF8;display:flex;align-items:flex-start;justify-content:space-between;gap:18px">
+          <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+              <h2 style="margin:0;font-size:18px;font-weight:700;letter-spacing:-.015em">UMAP 3D</h2>
+              <span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border:1px solid #121212;padding:2px 5px;border-radius:2px">pré-calculado</span>
+              <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0072B2">WebGL</span>
+            </div>
+            <div style="font-size:11.5px;color:#3F3F3B;font-variant-numeric:tabular-nums">{{ umap3dParams }}</div>
+            <div style="display:flex;gap:13px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums">
+              <sc-for list="{{ umap3dMetricas }}" as="m" hint-placeholder-count="4">
+                <span><span style="color:#5F5F59">{{ m.k }}</span> <b>{{ m.v }}</b></span>
+              </sc-for>
+            </div>
+          </div>
+          <button type="button" onClick="{{ onResetCamera3d }}" style="flex:0 0 auto;border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px">Restaurar câmera</button>
+        </header>
+        <div ref="{{ ref3d }}" role="img" aria-label="{{ aria3d }}" style="flex:1 1 auto;min-height:330px;width:100%;position:relative"></div>
+        <footer style="flex:0 0 auto;display:flex;justify-content:space-between;gap:18px;padding:7px 12px;border-top:1px solid #E4E4E0;background:#FAFAF8;font-size:12px;color:#3F3F3B">
+          <span>arraste para rotacionar · roda para aproximar · clique seleciona · shift soma · duplo clique restaura</span>
+          <span style="font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap">{{ umap3dSelecao }}</span>
+        </footer>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ temPaineis }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1 1 auto;min-height:342px;display:flex;gap:12px;padding:6px 0 8px">
+        <sc-for list="{{ paineis }}" as="p" hint-placeholder-count="3">
+          <section style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;border:1px solid #D8D8D3;background:#FFFFFF">
+            <div style="flex:0 0 auto;padding:8px 11px;border-bottom:1px solid #E4E4E0;background:#FAFAF8;display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <span style="font-size:17px;font-weight:700;letter-spacing:-.01em">{{ p.tecnica }}</span>
+                <span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border:1px solid #121212;padding:2px 5px;border-radius:2px">pré-calculado</span>
+                <select ref="{{ p.selRef }}" value="{{ p.cfgKey }}" onChange="{{ p.onCfg }}" disabled="{{ p.selDisabled }}" aria-label="{{ p.selLabel }}" style="margin-left:auto;max-width:100%;border:1px solid #121212;background:#FFFFFF;color:#121212;font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:4px 5px;border-radius:2px">
+                  <sc-for list="{{ p.opcoes }}" as="o" hint-placeholder-count="2">
+                    <option value="{{ o.v }}" disabled="{{ o.disabled }}">{{ o.label }}</option>
+                  </sc-for>
+                </select>
+              </div>
+              <div style="font-size:11.5px;color:#3F3F3B;font-variant-numeric:tabular-nums;line-height:1.3">{{ p.params }}</div>
+              <div style="display:flex;gap:11px;flex-wrap:nowrap;overflow:hidden;font-size:12px;font-variant-numeric:tabular-nums">
+                <sc-for list="{{ p.metricas }}" as="m" hint-placeholder-count="3">
+                  <span style="white-space:nowrap"><span style="color:#5F5F59">{{ m.k }}</span> <b>{{ m.v }}</b></span>
+                </sc-for>
+              </div>
+            </div>
+            <div ref="{{ p.ref }}" role="img" aria-label="{{ p.aria }}" style="flex:1 1 auto;min-height:120px;width:100%"></div>
+            <sc-if value="{{ p.temLente }}" hint-placeholder-val="{{ false }}">
+              <div style="flex:0 0 auto;padding:6px 11px 7px;border-top:1px solid #E4E4E0;background:#FAFAF8;font-size:12px;line-height:1.35;text-wrap:pretty">
+                <b style="font-weight:600">{{ p.lenteTexto }}</b> <span style="color:#5F5F59">{{ p.lenteNota }}</span>
+              </div>
+            </sc-if>
+          </section>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ mostraLegenda }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:8px 18px;padding:0 0 10px">
+        <sc-if value="{{ ehCorClasse }}" hint-placeholder-val="{{ true }}">
+          <div role="group" aria-label="Legenda de atividades — clique para ocultar ou mostrar a classe" style="display:flex;flex-wrap:wrap;gap:6px">
+            <sc-for list="{{ legenda }}" as="c" hint-placeholder-count="6">
+              <button type="button" onClick="{{ c.on }}" aria-pressed="{{ c.visivel }}" style="display:flex;align-items:center;gap:7px;border:1px solid #121212;background:{{ c.bg }};color:{{ c.fg }};padding:4px 9px 4px 7px;font-size:13px;font-weight:600;cursor:pointer;border-radius:2px;opacity:{{ c.op }}">
+                <span aria-hidden="true" style="width:16px;text-align:center;color:{{ c.cor }};font-size:16px;line-height:1">{{ c.glifoTexto }}</span>
+                <span>{{ c.label }}</span>
+                <span style="color:{{ c.fgSuave }};font-variant-numeric:tabular-nums;font-weight:400">{{ c.n }}</span>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ehCorSujeito }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+            <span style="font-weight:600">Participante</span>
+            <span style="font-variant-numeric:tabular-nums;color:#5F5F59">1</span>
+            <span aria-hidden="true" style="width:190px;height:12px;border:1px solid #121212;background:linear-gradient(90deg,#2C3E7B,#3E8FA8,#7FB069,#D79A3C,#A33A2A)"></span>
+            <span style="font-variant-numeric:tabular-nums;color:#5F5F59">{{ maxSujeito }}</span>
+            <span style="color:#5F5F59;max-width:52ch;text-wrap:pretty">gradiente indica o número do participante (identificador, não quantidade); a forma continua marcando a atividade.</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ehSemCor }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:13px">
+            <span style="color:#3F3F3B;max-width:60ch;text-wrap:pretty">Sem cor de classe: a atividade continua legível pela forma do marcador — é o teste em escala de cinza.</span>
+            <div style="display:flex;flex-wrap:wrap;gap:12px">
+              <sc-for list="{{ legenda }}" as="c" hint-placeholder-count="6">
+                <span style="display:flex;align-items:center;gap:6px">
+                  <span aria-hidden="true" style="width:16px;text-align:center;color:#6E6E68;font-size:16px;line-height:1">{{ c.glifoTexto }}</span>
+                  <span>{{ c.label }}</span>
+                </span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ lenteOn }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:14px;font-size:12.5px;color:#3F3F3B;border-left:1px solid #D8D8D3;padding-left:14px">
+            <span style="display:flex;align-items:center;gap:6px"><svg viewBox="-9 -9 18 18" width="18" height="18" aria-hidden="true"><circle r="7" fill="none" stroke="#121212" stroke-width="2"></circle></svg>vizinho preservado</span>
+            <span style="display:flex;align-items:center;gap:6px"><svg viewBox="-9 -9 18 18" width="18" height="18" aria-hidden="true"><rect x="-6.4" y="-6.4" width="12.8" height="12.8" fill="none" stroke="#121212" stroke-width="2" stroke-dasharray="3 2.4"></rect></svg>vizinho distante</span>
+            <span>preservado = está entre os K pontos mais próximos nesta projeção 2D, com K = tamanho da lista original.</span>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+
+    <sc-if value="{{ mostraInspetor }}" hint-placeholder-val="{{ false }}">
+      <section data-testid="inspetor-amostra" aria-labelledby="inspetor-titulo" style="flex:0 0 auto;margin:4px 0 12px;border-top:3px solid #121212;padding-top:10px">
+        <header style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:9px">
+          <div style="min-width:0">
+            <div class="inspector-kicker">Dados originais por trás do ponto</div>
+            <h2 id="inspetor-titulo" style="margin:2px 0 2px;font-size:21px;line-height:1.2;letter-spacing:-.02em">{{ inspectorTitulo }}</h2>
+            <p style="margin:0;color:#3F3F3B;font-size:13px;max-width:100ch;text-wrap:pretty">{{ inspectorSubtitulo }}</p>
+          </div>
+          <span style="flex:0 0 auto;border:1px solid #121212;padding:4px 7px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">janela de 2,56 s · 50 Hz</span>
+        </header>
+
+        <div class="inspector-meta">
+          <sc-for list="{{ inspectorMeta }}" as="m" hint-placeholder-count="6">
+            <div>
+              <div class="inspector-kicker">{{ m.k }}</div>
+              <div style="margin-top:2px;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ m.v }}">{{ m.v }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ inspectorCarregando }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="margin-top:10px;border:1px solid #D8D8D3;background:#FAFAF8;padding:14px;font-size:13px">Descompactando localmente os sinais e as 561 características… isso acontece apenas na primeira seleção.</div>
+        </sc-if>
+        <sc-if value="{{ inspectorErro }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="margin-top:10px;border:1px solid #D55E00;background:#FFF3E6;padding:14px;font-size:13px">{{ inspectorErro }}</div>
+        </sc-if>
+
+        <sc-if value="{{ inspectorPronto }}" hint-placeholder-val="{{ false }}">
+          <div class="inspector-grid" style="margin-top:12px">
+            <article class="inspector-card">
+              <div class="inspector-card-head" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+                <div>
+                  <div class="inspector-kicker">Sinal original da amostra em foco</div>
+                  <strong style="font-size:14px">{{ inspectorSinalTitulo }}</strong>
+                </div>
+                <div role="group" aria-label="Tipo de sinal" style="display:flex;gap:4px">
+                  <sc-for list="{{ segSinal }}" as="o" hint-placeholder-count="2">
+                    <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1px solid #121212;padding:5px 9px;font-size:12px;font-weight:700;cursor:pointer;border-radius:2px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div ref="{{ refSinal }}" data-testid="sinal-chart" role="img" aria-label="{{ ariaSinal }}" class="inspector-chart"></div>
+              <div style="padding:7px 11px;border-top:1px solid #E4E4E0;color:#5F5F59;font-size:12px">X, Y e Z são eixos do smartphone preso à cintura — não coordenadas da pessoa na sala.</div>
+            </article>
+
+            <article class="inspector-card">
+              <div class="inspector-card-head">
+                <div class="inspector-kicker">Oito características dominantes</div>
+                <strong style="font-size:14px">Seleção × {{ inspectorReferencia }}</strong>
+              </div>
+              <div ref="{{ refPerfil }}" data-testid="perfil-chart" role="img" aria-label="{{ ariaPerfil }}" class="inspector-chart"></div>
+              <div style="max-height:180px;overflow:auto;border-top:1px solid #E4E4E0">
+                <table style="width:100%;font-size:11.5px">
+                  <thead><tr><th style="text-align:left;padding:5px 8px;background:#FAFAF8">característica</th><th style="text-align:right;padding:5px 8px;background:#FAFAF8">seleção</th><th style="text-align:right;padding:5px 8px;background:#FAFAF8">referência</th></tr></thead>
+                  <tbody>
+                    <sc-for list="{{ inspectorFeatures }}" as="f" hint-placeholder-count="8">
+                      <tr><td style="padding:4px 8px;border-top:1px solid #EFEFEC;font-family:ui-monospace,monospace">{{ f.nome }}</td><td style="padding:4px 8px;border-top:1px solid #EFEFEC;text-align:right;font-variant-numeric:tabular-nums">{{ f.atual }}</td><td style="padding:4px 8px;border-top:1px solid #EFEFEC;text-align:right;font-variant-numeric:tabular-nums">{{ f.referencia }}</td></tr>
+                    </sc-for>
+                  </tbody>
+                </table>
+              </div>
+            </article>
+
+            <article class="inspector-card">
+              <div class="inspector-card-head">
+                <div class="inspector-kicker">Vizinhança em alta dimensão</div>
+                <strong style="font-size:14px">Quantos dos 10 vizinhos reais sobreviveram?</strong>
+              </div>
+              <div style="padding:10px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px">
+                <sc-for list="{{ inspectorVizinhos }}" as="n" hint-placeholder-count="4">
+                  <div style="border:1px solid #D8D8D3;padding:9px;min-width:0">
+                    <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><strong style="font-size:13px">{{ n.metodo }}</strong><b style="font-size:17px;font-variant-numeric:tabular-nums">{{ n.valor }}</b></div>
+                    <div style="font-size:11px;color:#5F5F59;margin:2px 0 6px">{{ n.nota }}</div>
+                    <div style="display:flex;flex-wrap:wrap;gap:3px">
+                      <sc-for list="{{ n.ids }}" as="v" hint-placeholder-count="3">
+                        <button type="button" onClick="{{ v.on }}" disabled="{{ v.disabled }}" title="{{ v.title }}" style="border:1px solid #B8B8B2;background:#FFFFFF;padding:2px 4px;font:10px ui-monospace,monospace;cursor:pointer;opacity:{{ v.op }}">{{ v.label }}</button>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </article>
+
+            <article class="inspector-card">
+              <div class="inspector-card-head">
+                <div class="inspector-kicker">Composição da seleção</div>
+                <strong style="font-size:14px">{{ inspectorComposicaoTitulo }}</strong>
+              </div>
+              <div style="padding:10px;display:flex;flex-direction:column;gap:7px">
+                <sc-for list="{{ inspectorComposicao }}" as="c" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:minmax(105px,1fr) 2.2fr 76px;gap:8px;align-items:center;font-size:12px">
+                    <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ c.label }}</span>
+                    <span aria-hidden="true" style="height:10px;background:#EFEFEC;border:1px solid #D8D8D3"><span style="display:block;height:100%;width:{{ c.pct }}%;background:{{ c.cor }}"></span></span>
+                    <span style="text-align:right;font-variant-numeric:tabular-nums">{{ c.n }} · {{ c.pctTexto }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:7px 10px;border-top:1px solid #E4E4E0;color:#5F5F59;font-size:12px">{{ inspectorComposicaoNota }}</div>
+            </article>
+          </div>
+        </sc-if>
+      </section>
+    </sc-if>
+
+    <sc-if value="{{ tabelaAberta }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:0 0 auto;max-height:31vh;overflow:auto;border:1px solid #D8D8D3;margin:0 0 10px;background:#FFFFFF">
+        <table style="width:100%;font-size:13px">
+          <caption style="text-align:left;padding:8px 10px;font-size:12px;color:#3F3F3B;border-bottom:1px solid #E4E4E0">{{ tabelaLegenda }}</caption>
+          <thead>
+            <tr>
+              <sc-for list="{{ tabelaCols }}" as="h" hint-placeholder-count="5">
+                <th scope="col" style="text-align:left;padding:6px 10px;border-bottom:1px solid #121212;background:#F5F5F3;font-size:11px;letter-spacing:.06em;text-transform:uppercase;position:sticky;top:0">{{ h }}</th>
+              </sc-for>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ tabelaLinhas }}" as="r" hint-placeholder-count="3">
+              <tr>
+                <th scope="row" style="text-align:left;padding:5px 10px;border-bottom:1px solid #EFEFEC;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:400">{{ r.id }}</th>
+                <td style="padding:5px 10px;border-bottom:1px solid #EFEFEC">
+                  <span style="display:flex;align-items:center;gap:7px">
+                    <span aria-hidden="true" style="display:inline-block;width:15px;text-align:center;color:{{ r.cor }};font-size:15px;line-height:1">{{ r.glifoTexto }}</span>{{ r.atividade }}
+                  </span>
+                </td>
+                <td style="padding:5px 10px;border-bottom:1px solid #EFEFEC;font-variant-numeric:tabular-nums">{{ r.subject }}</td>
+                <td style="padding:5px 10px;border-bottom:1px solid #EFEFEC">{{ r.split }}</td>
+                <td style="padding:5px 10px;border-bottom:1px solid #EFEFEC">{{ r.papel }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </sc-if>
+  </main>
+
+  <footer style="flex:0 0 auto;border-top:1px solid #D8D8D3;background:#F5F5F3;padding:7px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div role="status" aria-live="polite" style="flex:1 1 340px;min-width:0;font-size:13px;color:#121212;text-wrap:pretty">{{ anuncio }}</div>
+    <button type="button" onClick="{{ btnInspetor.on }}" disabled="{{ btnInspetor.disabled }}" aria-expanded="{{ mostraInspetor }}" style="border:1px solid #121212;background:{{ btnInspetor.bg }};color:{{ btnInspetor.fg }};padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;opacity:{{ btnInspetor.op }}">{{ btnInspetor.label }}</button>
+    <button type="button" onClick="{{ onTabela }}" aria-expanded="{{ tabelaAberta }}" style="border:1px solid #121212;background:{{ btnTabela.bg }};color:{{ btnTabela.fg }};padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px">{{ btnTabela.label }}</button>
+    <button type="button" onClick="{{ onReenquadrar }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px">Reenquadrar</button>
+    <button type="button" onClick="{{ onLimpar }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px">Limpar seleção e laço (Esc)</button>
+    <span style="font-size:12px;color:#5F5F59">{{ dica }}</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;modoInicial&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;laboratorio&quot;,&quot;apresentacao&quot;],&quot;default&quot;:&quot;laboratorio&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Início&quot;},&quot;tamanhoPonto&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:5,&quot;max&quot;:18,&quot;step&quot;:1,&quot;default&quot;:9,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Gráfico&quot;},&quot;atenuacao&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0.05,&quot;max&quot;:0.6,&quot;step&quot;:0.01,&quot;default&quot;:0.16,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Gráfico&quot;},&quot;mostrarLigacoes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Lente de vizinhança&quot;}}">
+class Component extends DCLogic {
+  state = {
+    pronto: false, erro: null, modo: null, cena: 0, vistaLab: 'comparar',
+    cfg: {}, corPor: 'label', cvd: 'padrao', sel: [], anchor: null,
+    lente: null, ligacoes: null, tabela: false, ocultas: [], avancado: false,
+    morphOn: false, morphI: 0, morphMs: 500, cmpA: null, cmpB: null,
+    ponto: null, aten: null, rotulo: true, filtroSujeitoMin: null, filtroSujeitoMax: null, filtroSplit: 'todos',
+    sinalTipo: 'acc', inspetorAberto: false, interpretacaoPronta: false, interpretacaoErro: null
+  };
+
+  slots = [React.createRef(), React.createRef(), React.createRef()];
+  selRefs = [React.createRef(), React.createRef(), React.createRef()];
+  plot3dRef = React.createRef();
+  plot3dEl = null;
+  sig3d = null;
+  signalRef = React.createRef();
+  profileRef = React.createRef();
+  signalChart = null;
+  profileChart = null;
+  profileCache = null;
+  neighborCache = {};
+  charts = [null, null, null];
+  ros = [null, null, null];
+  built = [null, null, null];
+  cacheExt = {};
+  cacheLente = {};
+
+  CENAS = [
+    { vista: 'ficha', titulo: 'Ficha do dataset', nota: '10.299 janelas, 561 características, seis atividades e 30 participantes. Cada ponto resume 2,56 segundos de sensores; não é uma posição física.', estado: { sel: [], anchor: null, lente: false, corPor: 'label', cvd: 'padrao' } },
+    { vista: 'comparar', titulo: 'O mesmo dado, três perguntas diferentes', nota: 'Sem cor de classe: PCA procura variância linear, t-SNE preserva vizinhanças probabilísticas e UMAP preserva um grafo local. O dado é o mesmo; o objetivo matemático muda.', estado: { sel: [], anchor: null, lente: false, corPor: 'none' } },
+    { vista: 'comparar', titulo: 'Revelando as atividades', nota: 'As cores entram somente depois do ajuste. Elas ajudam a verificar como os rótulos externos aparecem em cada projeção, mas não provam que os algoritmos descobriram classes.', estado: { sel: [], anchor: null, lente: false, corPor: 'label' } },
+    { vista: 'pca', titulo: 'PCA: o melhor plano linear', nota: 'PC1 e PC2 são combinações ortogonais das 561 características que concentram a maior variância possível. A variância acumulada no cabeçalho quantifica quanto esse plano reteve.', estado: { sel: [], anchor: null, lente: false, corPor: 'label' } },
+    { vista: 'tsne', titulo: 't-SNE: a escala da vizinhança muda o mapa', nota: 'Perplexidades 10, 30 e 50 foram calculadas com a mesma entrada PCA50 e a mesma seed. Compare quais vizinhanças permanecem e como a organização global pode mudar.', estado: { sel: [], anchor: null, lente: false, corPor: 'label' } },
+    { vista: 'umap', titulo: 'UMAP: do grafo local ao embedding', nota: 'Perfis local, equilibrado e amplo mudam n_neighbors e min_dist. Observe a troca entre detalhe local, compactação e organização em escalas maiores.', estado: { sel: [], anchor: null, lente: false, corPor: 'label' } },
+    { vista: 'comparar', titulo: 'Uma janela, três posições', nota: 'Selecione um ponto: o mesmo ID reaparece nas três projeções. A posição muda porque cada método preserva relações diferentes.', estado: { lente: false, corPor: 'label' }, ancora: true },
+    { vista: 'comparar', titulo: 'Vizinhos originais: o que cada método preservou?', nota: 'As dez conexões vêm do espaço padronizado de 561 dimensões. Anel contínuo indica vizinho preservado; quadrado tracejado indica vizinho afastado pela projeção.', estado: { lente: true, ligacoes: true, corPor: 'label' }, ancora: true },
+    { vista: 'comparar', titulo: 'A leitura sobrevive sem a cor original?', nota: 'A simulação de deuteranopia altera a paleta, enquanto símbolos e contornos continuam redundantes. A comparação metodológica não deve depender apenas de cor.', estado: { lente: false, corPor: 'label', cvd: 'deuteranopia' } },
+    { vista: 'encerramento', titulo: 'Toda projeção escolhe o que preservar', nota: 'PCA, t-SNE e UMAP não competem por uma verdade única. Eles oferecem leituras complementares e exigem parâmetros, métricas e limites de interpretação explícitos.', estado: { sel: [], anchor: null, lente: false } }
+  ];
+
+  AVISOS = [
+    'Nenhuma das três projeções é a resposta certa: cada uma preserva um tipo de relação e distorce outra.',
+    'Em t-SNE e UMAP, distância entre grupos, tamanho de grupo e área vazia exigem cautela e não são réguas fiéis do espaço original.',
+    'PCA quantifica variância explicada no modelo linear, mas duas componentes ainda descartam informação.',
+    'Todo resultado aqui é pré-calculado com seed fixa: outra seed ou outro parâmetro muda o desenho.',
+    'Vizinhança preservada é medida contra a lista pré-calculada de vizinhos em 561 dimensões — não contra o que parece perto na tela.',
+    'Os resultados foram calculados sobre o HAR oficial; parâmetros, seed e protocolo permanecem visíveis para auditoria.'
+  ];
+
+  CVD = [
+    { v: 'padrao', label: 'padrão' }, { v: 'protanopia', label: 'protanopia' },
+    { v: 'deuteranopia', label: 'deuteranopia' }, { v: 'tritanopia', label: 'tritanopia' },
+    { v: 'monocromacia', label: 'monocromacia' }
+  ];
+
+  RAMPA = ['#2C3E7B', '#3E8FA8', '#7FB069', '#D79A3C', '#A33A2A'];
+
+  componentDidMount() {
+    this.reduz = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    window.addEventListener('keydown', this.onKey);
+    window.addEventListener('resize', this.onResize);
+    this.t0 = Date.now();
+    this.aguardar();
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keydown', this.onKey);
+    window.removeEventListener('resize', this.onResize);
+    clearInterval(this.timer); clearInterval(this.espera);
+    this.charts.forEach((c, i) => { if (c && !c.isDisposed()) c.dispose(); this.charts[i] = null; });
+    this.ros.forEach((r, i) => { if (r) r.disconnect(); this.ros[i] = null; });
+    this.purgar3d();
+    this.purgarInspetor();
+  }
+
+  componentDidUpdate() {
+    if (this.vista() !== 'morph' && this.timer) { clearInterval(this.timer); this.timer = null; if (this.state.morphOn) this.setState({ morphOn: false }); }
+    this.sync();
+  }
+
+  aguardar = () => {
+    if (window.HAR_DADOS) return this.iniciar(window.HAR_DADOS);
+    if (Date.now() - this.t0 > 12000) return this.setState({ erro: 'Arquivo de dados har-data.js não carregou.' });
+    setTimeout(this.aguardar, 60);
+  };
+
+  iniciar(D) {
+    this.D = D;
+    this.umap3dKey = (D.protocolo && D.protocolo.umap_3d && D.protocolo.umap_3d.chave) || 'umap3d/equilibrado/seed-42';
+    this.byId = {}; this.idxOf = {}; this.byClass = {}; this.classById = {};
+    (D.dataset.classes || []).forEach(c => { this.classById[c.id] = c; this.byClass[c.id] = []; });
+    (D.amostras || []).forEach((s, i) => {
+      this.byId[s.id] = s; this.idxOf[s.id] = i;
+      if (!this.byClass[s.label]) this.byClass[s.label] = [];
+      this.byClass[s.label].push(i);
+    });
+    const vistos = {}; this.cfgKeys = [];
+    (D.amostras || []).forEach(s => Object.keys(s.projecoes || {}).forEach(k => { if (!vistos[k]) { vistos[k] = 1; this.cfgKeys.push(k); } }));
+    this.porTech = {}; this.techs = [];
+    this.cfgKeys.forEach(k => { const t = k.split('/')[0]; if (!this.porTech[t]) { this.porTech[t] = []; this.techs.push(t); } this.porTech[t].push(k); });
+    this.faltantes = {};
+    Object.keys(D.metricas || {}).forEach(k => { if (this.cfgKeys.indexOf(k) < 0) { const t = k.split('/')[0]; (this.faltantes[t] = this.faltantes[t] || []).push(k); } });
+    this.maxSujeito = 1;
+    (D.amostras || []).forEach(s => { const v = s.meta && s.meta.subject; if (typeof v === 'number' && v > this.maxSujeito) this.maxSujeito = v; });
+    this.sujeitos = Array.from(new Set((D.amostras || []).map(s => Number(s.meta && s.meta.subject)).filter(Boolean))).sort((a, b) => a - b);
+    this.splits = Array.from(new Set((D.amostras || []).map(s => s.meta && s.meta.split).filter(Boolean))).sort();
+    let melhor = null, melhorN = -1;
+    (D.amostras || []).forEach(s => {
+      const n = (s.vizinhos_originais_k10 || []).filter(id => this.byId[id]).length;
+      if (n > melhorN) { melhorN = n; melhor = s.id; }
+    });
+    this.ancoraPadrao = melhor;
+    const cfg = {}; this.techs.forEach(t => cfg[t] = this.porTech[t][0]);
+    const tsnePadrao = this.cfgKeys.find(k => k.indexOf('tsne/perplexidade-30/') === 0);
+    const umapPadrao = this.cfgKeys.find(k => k.indexOf('umap/equilibrado/') === 0);
+    if (tsnePadrao) cfg.tsne = tsnePadrao;
+    if (umapPadrao) cfg.umap = umapPadrao;
+    const tsne = tsnePadrao || this.cfgKeys.filter(k => k.indexOf('tsne') === 0)[0];
+    const pca = this.cfgKeys.filter(k => k.indexOf('pca') === 0)[0];
+    this.setState({
+      pronto: true, cfg: cfg,
+      cmpA: tsne || this.cfgKeys[0], cmpB: pca || this.cfgKeys[this.cfgKeys.length - 1],
+      modo: this.props.modoInicial === 'apresentacao' ? 'apresentacao' : 'laboratorio'
+    });
+  }
+
+  // ---------- estado derivado ----------
+  modo() { return this.state.modo || 'laboratorio'; }
+  cena() { return this.CENAS[Math.max(0, Math.min(this.CENAS.length - 1, this.state.cena))]; }
+  vista() { return this.modo() === 'apresentacao' ? this.cena().vista : this.state.vistaLab; }
+  lenteOn() { return this.state.lente === null ? true : !!this.state.lente; }
+  ligacoesOn() { return this.state.ligacoes === null ? this.props.mostrarLigacoes !== false : !!this.state.ligacoes; }
+  ponto() { return this.state.ponto === null ? (this.props.tamanhoPonto || 9) : this.state.ponto; }
+  aten() { return (this.state.aten === null ? Math.round((this.props.atenuacao || 0.16) * 100) : this.state.aten) / 100; }
+  msMorph() { return this.reduz ? 0 : this.state.morphMs; }
+
+  filtroSujeitoMinAtual() { const v = Number(this.state.filtroSujeitoMin); return v >= 1 ? v : 1; }
+  filtroSujeitoMaxAtual() { const v = Number(this.state.filtroSujeitoMax); return v >= 1 ? v : this.maxSujeito; }
+  filtroSplitAtual() { return this.state.filtroSplit || 'todos'; }
+  faixaCompleta() { return this.filtroSujeitoMinAtual() === 1 && this.filtroSujeitoMaxAtual() === this.maxSujeito; }
+
+  passaFiltrosBasicos(s, sujeitoMin, sujeitoMax, split) {
+    if (!s) return false;
+    const inicio = sujeitoMin == null ? this.filtroSujeitoMinAtual() : Number(sujeitoMin);
+    const fim = sujeitoMax == null ? this.filtroSujeitoMaxAtual() : Number(sujeitoMax);
+    const splitAtivo = split == null ? this.filtroSplitAtual() : split;
+    const sujeito = Number(s.meta && s.meta.subject);
+    if (sujeito < inicio || sujeito > fim) return false;
+    if (splitAtivo !== 'todos' && (!s.meta || s.meta.split !== splitAtivo)) return false;
+    return true;
+  }
+
+  passaFiltros(s, sujeitoMin, sujeitoMax, split, ocultas) {
+    if (!this.passaFiltrosBasicos(s, sujeitoMin, sujeitoMax, split)) return false;
+    const classesOcultas = ocultas == null ? this.state.ocultas : ocultas;
+    return classesOcultas.indexOf(s.label) < 0;
+  }
+
+  filtroKey() { return this.filtroSujeitoMinAtual() + '-' + this.filtroSujeitoMaxAtual() + '|' + this.filtroSplitAtual() + '|' + this.state.ocultas.slice().sort().join(','); }
+  totalVisivel() { return (this.D.amostras || []).reduce((n, s) => n + (this.passaFiltros(s) ? 1 : 0), 0); }
+  contagemClasse(id) {
+    // a legenda tem que contar o que a vista atual realmente desenha. uma
+    // gravacao do iphone so tem coordenadas no espaco comum: contar ela em
+    // pca, t-sne ou umap ia mostrar um numero do lado de um grafico sem ela
+    const ehTresD = this.vista() === 'umap3d';
+    const chaves = ehTresD ? [] : this.chavesVista();
+    return (this.byClass[id] || []).reduce((n, ix) => {
+      const s = this.D.amostras[ix];
+      if (!this.passaFiltrosBasicos(s)) return n;
+      if (ehTresD) return n + (s.projecoes_3d && s.projecoes_3d[this.umap3dKey] ? 1 : 0);
+      if (chaves.length && !chaves.some(k => s.projecoes && s.projecoes[k])) return n;
+      return n + 1;
+    }, 0);
+  }
+
+  aplicarFiltros = (sujeitoMin, sujeitoMax, split) => {
+    const inicio = Math.max(1, Math.min(this.maxSujeito, Number(sujeitoMin) || 1));
+    const fim = Math.max(inicio, Math.min(this.maxSujeito, Number(sujeitoMax) || this.maxSujeito));
+    const splitAtivo = split || 'todos', ocultas = this.state.ocultas;
+    const visivel = id => this.passaFiltros(this.byId[id], inicio, fim, splitAtivo, ocultas);
+    const sel = this.state.sel.filter(visivel);
+    const anchor = this.state.anchor && visivel(this.state.anchor) ? this.state.anchor : (sel[0] || null);
+    this.desarmarBrush();
+    this.setState({ filtroSujeitoMin: inicio, filtroSujeitoMax: fim, filtroSplit: splitAtivo, sel: sel, anchor: anchor }, this.reenquadrar);
+  };
+
+  alterarFaixa = (ponta, valor) => {
+    let inicio = this.filtroSujeitoMinAtual(), fim = this.filtroSujeitoMaxAtual();
+    if (ponta === 'min') inicio = Math.min(Math.max(1, Number(valor) || 1), fim);
+    else fim = Math.max(Math.min(this.maxSujeito, Number(valor) || this.maxSujeito), inicio);
+    this.aplicarFiltros(inicio, fim, this.filtroSplitAtual());
+  };
+
+  limparFiltros = () => {
+    this.desarmarBrush();
+    this.setState({ filtroSujeitoMin: null, filtroSujeitoMax: null, filtroSplit: 'todos', ocultas: [], sel: [], anchor: null }, this.reenquadrar);
+  };
+
+  alternarClasse(id, visivelAgora) {
+    const ocultas = visivelAgora ? this.state.ocultas.concat([id]) : this.state.ocultas.filter(x => x !== id);
+    const passa = amostraId => this.passaFiltros(this.byId[amostraId], this.filtroSujeitoMinAtual(), this.filtroSujeitoMaxAtual(), this.filtroSplitAtual(), ocultas);
+    const sel = this.state.sel.filter(passa);
+    const anchor = this.state.anchor && passa(this.state.anchor) ? this.state.anchor : (sel[0] || null);
+    this.setState({ ocultas: ocultas, sel: sel, anchor: anchor });
+  }
+
+  nomeTech(t) { return ({ pca: 'PCA', tsne: 't-SNE', umap: 'UMAP' })[t] || String(t).toUpperCase(); }
+
+  fmt(v, d) { return typeof v === 'number' ? v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
+  fmtTempo(ms) { return typeof ms !== 'number' ? '—' : (ms < 2000 ? ms + ' ms' : this.fmt(ms / 1000, 1) + ' s'); }
+
+  descreve(k) {
+    if (!k) return '';
+    const seg = String(k).split('/'); const out = [];
+    seg.slice(1).forEach(s => {
+      let m = s.match(/^pc(\d+)-pc(\d+)$/i);
+      if (m) return out.push('PC' + m[1] + ' × PC' + m[2]);
+      m = s.match(/^([a-zà-ú_]+)-([\d.]+)$/i);
+      if (m) return out.push(m[1].replace(/_/g, ' ') + ' ' + m[2]);
+      out.push('perfil ' + s);
+    });
+    const mm = (this.D.metricas || {})[k];
+    if (mm && mm.parametros) Object.keys(mm.parametros).forEach(p => out.push(p + ' ' + mm.parametros[p]));
+    if (mm && mm.variancia_explicada) out.push(mm.variancia_explicada.map((v, i) => 'PC' + (i + 1) + ' ' + Math.round(v * 100) + '%').join(' · '));
+    return out.join(' · ');
+  }
+
+  metricasDe(k) {
+    const m = (this.D.metricas || {})[k] || {}; const out = [];
+    if (m.trustworthiness_k10 != null) out.push({ k: 'trust k10', v: this.fmt(m.trustworthiness_k10, 2) });
+    if (m.continuity_k10 != null) out.push({ k: 'cont k10', v: this.fmt(m.continuity_k10, 2) });
+    if (m.variancia_explicada_acumulada != null) out.push({ k: 'var. acum.', v: Math.round(m.variancia_explicada_acumulada * 100) + '%' });
+    if (m.tempo_ms != null) out.push({ k: 'tempo', v: this.fmtTempo(m.tempo_ms) });
+    if (!out.length) out.push({ k: 'métricas', v: 'não informadas' });
+    return out;
+  }
+
+  paleta() {
+    const p = {}; const modo = this.state.cvd;
+    (this.D.dataset.classes || []).forEach(c => { p[c.id] = modo === 'padrao' ? c.cor : ((c.cor_cvd || {})[modo] || c.cor); });
+    return p;
+  }
+
+  glifo(c) {
+    const s = (c && c.simbolo) || 'circle';
+    if (s.indexOf('path://') === 0) return s.slice(7);
+    const G = {
+      circle: 'M0,-5.2A5.2,5.2,0,1,1,0,5.2A5.2,5.2,0,1,1,0,-5.2Z',
+      rect: 'M-4.7,-4.7H4.7V4.7H-4.7Z',
+      roundRect: 'M-4.7,-3.1Q-4.7,-4.7,-3.1,-4.7H3.1Q4.7,-4.7,4.7,-3.1V3.1Q4.7,4.7,3.1,4.7H-3.1Q-4.7,4.7,-4.7,3.1Z',
+      triangle: 'M0,-5.6L5.4,4.4H-5.4Z',
+      diamond: 'M0,-6L5.6,0L0,6L-5.6,0Z'
+    };
+    return G[s] || G.circle;
+  }
+
+  glifoTexto(c) {
+    const s = (c && c.simbolo) || 'circle';
+    if (s.indexOf('path://') === 0) return '✚';
+    return ({ circle: '●', rect: '■', roundRect: '▣', triangle: '▲', diamond: '◆' })[s] || '●';
+  }
+
+  extensao(keys) {
+    const id = keys.join('|') + '@' + this.filtroKey();
+    if (this.cacheExt[id]) return this.cacheExt[id];
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    (this.D.amostras || []).forEach(s => {
+      if (!this.passaFiltros(s)) return;
+      keys.forEach(k => {
+      const p = s.projecoes[k]; if (!p) return;
+      if (p[0] < x0) x0 = p[0]; if (p[0] > x1) x1 = p[0];
+      if (p[1] < y0) y0 = p[1]; if (p[1] > y1) y1 = p[1];
+      });
+    });
+    if (!isFinite(x0)) { x0 = -1; x1 = 1; y0 = -1; y1 = 1; }
+    const px = (x1 - x0 || 2) * 0.1, py = (y1 - y0 || 2) * 0.12;
+    const e = { x0: x0 - px, x1: x1 + px, y0: y0 - py, y1: y1 + py };
+    this.cacheExt[id] = e; return e;
+  }
+
+  pt(id, k) { const s = this.byId[id]; const p = s && s.projecoes[k]; return p ? [p[0], p[1]] : null; }
+
+  lenteDe(anchorId, k) {
+    const cid = anchorId + '@' + k + '@' + this.filtroKey();
+    if (this.cacheLente[cid]) return this.cacheLente[cid];
+    const a = this.byId[anchorId]; if (!a || !this.passaFiltros(a)) return null;
+    const ap = a.projecoes[k]; if (!ap) return null;
+    const lista = a.vizinhos_originais_k10 || [];
+    const presentes = lista.filter(id => this.byId[id] && this.passaFiltros(this.byId[id]) && this.byId[id].projecoes[k]);
+    const K = lista.length || 10;
+    const dist = [];
+    (this.D.amostras || []).forEach(s => {
+      if (s.id === anchorId || !this.passaFiltros(s)) return; const p = s.projecoes[k]; if (!p) return;
+      dist.push([(p[0] - ap[0]) * (p[0] - ap[0]) + (p[1] - ap[1]) * (p[1] - ap[1]), s.id]);
+    });
+    dist.sort((a1, b1) => a1[0] - b1[0]);
+    const perto = {}; dist.slice(0, K).forEach(d => perto[d[1]] = 1);
+    const res = {
+      ap: [ap[0], ap[1]], K: lista.length, ausentes: lista.length - presentes.length,
+      preservados: presentes.filter(id => perto[id]), perdidos: presentes.filter(id => !perto[id])
+    };
+    this.cacheLente[cid] = res; return res;
+  }
+
+  // ---------- paineis ----------
+  chavesVista() {
+    const v = this.vista(), S = this.state;
+    if (v === 'morph') { const o = this.ordemMorph(); return [o[S.morphI % o.length]]; }
+    if (v === 'contraste') return [S.cmpA, S.cmpB].filter(Boolean);
+    if (v === 'pca') return (this.porTech['pca'] || []).slice(0, 1);
+    if (v === 'tsne') return (this.porTech['tsne'] || []).slice(0, 3);
+    if (v === 'umap') return (this.porTech['umap'] || []).slice(0, 3);
+    if (v === 'harlive') {
+      // ordem fixa pca, t-sne, umap: mesma das vistas oficiais, pra
+      // comparacao entre as tres tecnicas ficar lado a lado
+      const ordem = ['pca-comum', 'tsne-comum', 'umap-comum'];
+      const lista = this.porTech['harlive'] || [];
+      return ordem.map(p => lista.find(k => k.indexOf('harlive/' + p) === 0)).filter(Boolean);
+    }
+    if (v === 'comparar') return ['pca', 'tsne', 'umap'].map(t => S.cfg[t]).filter(Boolean);
+    return [];
+  }
+
+  ordemMorph() {
+    const S = this.state;
+    return ['pca', 'umap', 'tsne'].map(t => S.cfg[t]).filter(Boolean);  // sem harlive: espaco diferente
+  }
+
+  opcoesPara(k, i) {
+    const v = this.vista();
+    const t = String(k).split('/')[0];
+    const lista = (v === 'contraste' || v === 'morph') ? this.cfgKeys.slice() : (this.porTech[t] || []).slice();
+    const out = lista.map(x => ({ v: x, label: x, disabled: false }));
+    if (v !== 'contraste' && v !== 'morph') (this.faltantes[t] || []).forEach(x => out.push({ v: x, label: x + '  — sem coordenadas neste arquivo', disabled: true }));
+    return out;
+  }
+
+  paineis() {
+    const S = this.state, v = this.vista(), keys = this.chavesVista();
+    const ext = v === 'morph' ? this.extensao(this.ordemMorph()) : null;
+    const nCls = (this.D.dataset.classes || []).length;
+    return keys.slice(0, 3).map((k, i) => {
+      const t = String(k).split('/')[0];
+      const L = (this.lenteOn() && S.anchor) ? this.lenteDe(S.anchor, k) : null;
+      let lenteTexto = '', lenteNota = '';
+      if (L) {
+        lenteTexto = L.preservados.length + ' de ' + L.K + ' vizinhos originais preservados nesta projeção';
+        lenteNota = '· ' + L.perdidos.length + ' distante(s)' + (L.ausentes ? ' · ' + L.ausentes + ' vizinho(s) fora do filtro ou sem coordenadas' : '');
+      }
+      const m = (this.D.metricas || {})[k] || {};
+      return {
+        ref: this.slots[i], selRef: this.selRefs[i], tecnica: this.nomeTech(t), cfgKey: k, params: this.descreve(k) || '—',
+        metricas: this.metricasDe(k), opcoes: this.opcoesPara(k, i), ext: ext, selDisabled: v === 'pca' || v === 'tsne' || v === 'umap',
+        selLabel: 'Configuração pré-calculada do painel ' + this.nomeTech(t),
+        temLente: !!L, lenteTexto: lenteTexto, lenteNota: lenteNota,
+        onCfg: e => this.trocarCfg(i, t, e.target.value),
+        aria: 'Dispersão pré-calculada. ' + this.nomeTech(t) + ', ' + (this.descreve(k) || 'sem parâmetros declarados') +
+          '. ' + this.totalVisivel() + ' amostras visíveis, ' + nCls + ' atividades, ' + S.sel.length + ' selecionada(s).' +
+          (m.trustworthiness_k10 != null ? ' Trustworthiness k10 ' + this.fmt(m.trustworthiness_k10, 2) + '.' : '') +
+          (L ? ' ' + lenteTexto + '.' : '') + ' Eixos sem escala semântica.'
+      };
+    });
+  }
+
+  trocarCfg(i, t, val) {
+    const v = this.vista();
+    if (v === 'contraste') return this.setState(i === 0 ? { cmpA: val } : { cmpB: val });
+    const cfg = Object.assign({}, this.state.cfg); cfg[String(val).split('/')[0] || t] = val;
+    this.setState({ cfg: cfg });
+  }
+
+  // ---------- ECharts ----------
+  sync() {
+    if (!this.state.pronto) return;
+    if (!window.echarts) {
+      if (!this.espera) this.espera = setInterval(() => { if (window.echarts) { clearInterval(this.espera); this.espera = null; this.sync(); } }, 120);
+      return;
+    }
+    const ps = this.paineis();
+    this.selRefs.forEach((r, i) => { if (r.current && ps[i] && r.current.value !== ps[i].cfgKey) r.current.value = ps[i].cfgKey; });
+    this.slots.forEach((ref, i) => {
+      const el = ref.current;
+      if (!el || i >= ps.length) {
+        const c0 = this.charts[i];
+        if (c0) { if (!c0.isDisposed()) c0.dispose(); this.charts[i] = null; }
+        if (this.ros[i]) { this.ros[i].disconnect(); this.ros[i] = null; }
+        return;
+      }
+      const c1 = this.charts[i];
+      if (c1 && (c1.isDisposed() || c1.getDom() !== el)) { if (!c1.isDisposed()) c1.dispose(); this.charts[i] = null; }
+      if (!this.charts[i]) {
+        const orfa = window.echarts.getInstanceByDom(el);
+        if (orfa && !orfa.isDisposed()) orfa.dispose();
+        el.removeAttribute('_echarts_instance_');
+        while (el.firstChild) el.removeChild(el.firstChild);
+        const ch = window.echarts.init(el, null, { renderer: 'canvas' });
+        this.charts[i] = ch; this.ligar(ch, i);
+        if (window.ResizeObserver) { const ro = new ResizeObserver(() => ch.resize()); ro.observe(el); this.ros[i] = ro; }
+      }
+      window.__charts = this.charts;
+      this.charts[i].resize();
+      this.charts[i].setOption(this.opcao(ps[i], i, el.clientHeight || 0), { replaceMerge: ['series', 'visualMap'] });
+    });
+    this.sync3d();
+    this.syncInspetor();
+  }
+
+  simbolo3d(c) {
+    const classes = this.D.dataset.classes || [];
+    const i = Math.max(0, classes.findIndex(item => item.id === c.id));
+    return ['circle', 'square', 'diamond', 'cross', 'x', 'circle-open'][i % 6];
+  }
+
+  dados3d() {
+    const S = this.state, cor = this.paleta(), base = Math.max(2.4, this.ponto() * 0.46);
+    const temSel = S.sel.length > 0, opacidade = temSel ? Math.max(0.08, this.aten()) : 0.84;
+    const traces = (this.D.dataset.classes || []).map(c => {
+      const x = [], y = [], z = [], subjects = [], custom = [];
+      (this.byClass[c.id] || []).forEach(ix => {
+        const s = this.D.amostras[ix]; if (!this.passaFiltros(s)) return;
+        const p = s.projecoes_3d && s.projecoes_3d[this.umap3dKey]; if (!p) return;
+        x.push(p[0]); y.push(p[1]); z.push(p[2]); subjects.push((s.meta && s.meta.subject) || 0);
+        custom.push([s.id, c.label_pt || s.label, (s.meta && s.meta.subject) || '—', (s.meta && s.meta.split) || '—']);
+      });
+      const marker = { size: base, opacity: opacidade, symbol: this.simbolo3d(c), color: S.corPor === 'none' ? '#6E6E68' : cor[c.id] };
+      if (S.corPor === 'subject') Object.assign(marker, { color: subjects, cmin: 1, cmax: this.maxSujeito, colorscale: [[0,'#2C3E7B'],[.25,'#3E8FA8'],[.5,'#7FB069'],[.75,'#D79A3C'],[1,'#A33A2A']], showscale: false });
+      return { type: 'scatter3d', mode: 'markers', meta: 'classe', name: c.label_pt, x: x, y: y, z: z, customdata: custom, marker: marker, showlegend: false, hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>participante %{customdata[2]} · %{customdata[3]}<extra></extra>' };
+    });
+    const sx = [], sy = [], sz = [], st = [], sc = [];
+    S.sel.forEach(id => {
+      const s = this.byId[id]; if (!s || !this.passaFiltros(s)) return;
+      const p = s.projecoes_3d && s.projecoes_3d[this.umap3dKey]; if (!p) return;
+      const c = this.classById[s.label] || {};
+      sx.push(p[0]); sy.push(p[1]); sz.push(p[2]); st.push(id === S.anchor && S.rotulo ? id : '');
+      sc.push([s.id, c.label_pt || s.label, (s.meta && s.meta.subject) || '—', (s.meta && s.meta.split) || '—']);
+    });
+    traces.push({ type: 'scatter3d', mode: S.rotulo ? 'markers+text' : 'markers', meta: 'selecao', x: sx, y: sy, z: sz, text: st, textposition: 'top center', customdata: sc, showlegend: false, hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>participante %{customdata[2]} · %{customdata[3]}<extra></extra>', marker: { size: base * 2.15, color: '#FFFFFF', symbol: 'circle-open', opacity: 1, line: { color: '#121212', width: 4 } }, textfont: { color: '#121212', size: 12, family: 'ui-monospace,monospace' } });
+    return traces;
+  }
+
+  sync3d() {
+    if (this.vista() !== 'umap3d') return this.purgar3d();
+    const el = this.plot3dRef.current; if (!el || !window.Plotly) return;
+    if (this.plot3dEl && this.plot3dEl !== el) this.purgar3d();
+    this.plot3dEl = el; window.__plot3d = el;
+    const sig = [this.filtroKey(), this.state.corPor, this.state.cvd, this.ponto(), this.aten(), this.state.anchor || '', this.state.sel.join(',')].join('|');
+    if (sig === this.sig3d) { if (window.Plotly.Plots) window.Plotly.Plots.resize(el); return; }
+    this.sig3d = sig;
+    const total = this.totalVisivel();
+    const axis = titulo => ({ title: { text: titulo, font: { size: 11, color: '#5F5F59' } }, showbackground: true, backgroundcolor: '#FAFAF8', gridcolor: '#D8D8D3', zerolinecolor: '#B8B8B2', showticklabels: false, showspikes: false });
+    const layout = {
+      margin: { l: 0, r: 0, t: 8, b: 0 }, paper_bgcolor: '#FFFFFF', plot_bgcolor: '#FFFFFF', showlegend: false, uirevision: 'har-umap3d-camera-v1',
+      scene: { xaxis: axis('UMAP-1'), yaxis: axis('UMAP-2'), zaxis: axis('UMAP-3'), aspectmode: 'data', dragmode: 'orbit', camera: { eye: { x: 1.45, y: 1.45, z: 1.15 } } },
+      hoverlabel: { bgcolor: '#FFFFFF', bordercolor: '#121212', font: { color: '#121212', size: 12, family: 'Helvetica Neue,Helvetica,sans-serif' } },
+      annotations: total ? [] : [{ text: 'Nenhuma amostra corresponde aos filtros', x: .5, y: .5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 16, color: '#5F5F59' } }]
+    };
+    const config = { responsive: true, scrollZoom: true, displaylogo: false, doubleClick: 'reset', toImageButtonOptions: { format: 'png', filename: 'umap-3d-har', scale: 2 } };
+    window.Plotly.react(el, this.dados3d(), layout, config).then(() => {
+      if (el.__harLinked || !el.on) return;
+      el.on('plotly_click', ev => {
+        const point = ev && ev.points && ev.points[0], cd = point && point.customdata;
+        const id = Array.isArray(cd) ? cd[0] : cd; if (!id) return;
+        const original = ev && ev.event;
+        this.selecionar(id, !!(original && (original.shiftKey || original.metaKey || original.ctrlKey)));
+      });
+      el.__harLinked = true;
+    });
+  }
+
+  purgar3d() {
+    if (this.plot3dEl && window.Plotly) window.Plotly.purge(this.plot3dEl);
+    if (window.__plot3d === this.plot3dEl) window.__plot3d = null;
+    this.plot3dEl = null; this.sig3d = null;
+  }
+
+  resetCamera3d = () => {
+    if (!this.plot3dEl || !window.Plotly) return;
+    window.Plotly.relayout(this.plot3dEl, { 'scene.camera': { eye: { x: 1.45, y: 1.45, z: 1.15 }, center: { x: 0, y: 0, z: 0 }, up: { x: 0, y: 0, z: 1 } } });
+  };
+
+  onResize = () => {
+    this.charts.forEach(c => c && c.resize());
+    if (this.plot3dEl && window.Plotly && window.Plotly.Plots) window.Plotly.Plots.resize(this.plot3dEl);
+    if (this.signalChart && !this.signalChart.isDisposed()) this.signalChart.resize();
+    if (this.profileChart && !this.profileChart.isDisposed()) this.profileChart.resize();
+  };
+
+  ligar(ch, i) {
+    ch.on('click', p => {
+      if (p.componentType !== 'series') return;
+      const d = p.data; const arr = Array.isArray(d) ? d : (d && d.value);
+      if (!arr || arr[2] == null) return;
+      const s = this.D.amostras[arr[2]]; if (!s) return;
+      const ev = p.event && p.event.event;
+      this.selecionar(s.id, !!(ev && (ev.shiftKey || ev.metaKey || ev.ctrlKey)));
+    });
+    ch.on('brushselected', ev => {
+      if (this.limpandoBrush) return;
+      const b = this.built[i]; if (!b) return;
+      const ids = [];
+      const lote = (ev.batch && ev.batch[0] && ev.batch[0].selected) || [];
+      lote.forEach(s => {
+        const serie = b[s.seriesIndex];
+        if (!serie || String(serie.id).indexOf('cls-') !== 0) return;
+        (s.dataIndex || []).forEach(di => {
+          const it = serie.data[di]; const arr = Array.isArray(it) ? it : (it && it.value);
+          const am = arr && this.D.amostras[arr[2]]; if (am) ids.push(am.id);
+        });
+      });
+      if (!ids.length) return;
+      const anchor = ids.length === 1 ? ids[0] : (this.state.anchor && ids.indexOf(this.state.anchor) >= 0 ? this.state.anchor : ids[0]);
+      this.setState({ sel: ids, anchor: anchor }, () => this.desarmarBrush());
+    });
+    ch.getZr().on('click', e => { if (!e.target && !this.limpandoBrush) this.limpar(); });
+  }
+
+  selecionar(id, somar) {
+    const S = this.state;
+    if (somar) {
+      const sel = S.sel.indexOf(id) >= 0 ? S.sel.filter(x => x !== id) : S.sel.concat([id]);
+      this.setState({ sel: sel, anchor: sel.length ? (sel.indexOf(S.anchor) >= 0 ? S.anchor : sel[sel.length - 1]) : null });
+    } else if (S.sel.length === 1 && S.sel[0] === id) {
+      this.setState({ sel: [], anchor: null });
+    } else {
+      this.setState({ sel: [id], anchor: id });
+    }
+  }
+
+  desarmarBrush = () => {
+    this.limpandoBrush = true;
+    this.charts.forEach(c => {
+      if (!c || c.isDisposed()) return;
+      c.dispatchAction({ type: 'brush', areas: [] });
+      c.dispatchAction({ type: 'takeGlobalCursor', key: 'brush', brushOption: { brushType: false } });
+    });
+    clearTimeout(this.tBrush);
+    this.tBrush = setTimeout(() => { this.limpandoBrush = false; }, 280);
+  };
+
+  limpar = () => { this.desarmarBrush(); this.setState({ sel: [], anchor: null }); };
+
+  reenquadrar = () => {
+    if (this.vista() === 'umap3d') return this.resetCamera3d();
+    this.charts.forEach(c => {
+      if (!c || c.isDisposed()) return;
+      c.dispatchAction({ type: 'dataZoom', dataZoomId: 'dzx', start: 0, end: 100 });
+      c.dispatchAction({ type: 'dataZoom', dataZoomId: 'dzy', start: 0, end: 100 });
+    });
+  };
+
+  opcao(p, i, alturaPx) {
+    const S = this.state, D = this.D, k = p.cfgKey;
+    const ext = p.ext || this.extensao([k]);
+    const cor = this.paleta(), base = this.ponto(), dim = this.aten();
+    const temSel = S.sel.length > 0, ocultas = S.ocultas;
+    const semCor = S.corPor === 'none';
+    const series = [], built = [];
+    (D.dataset.classes || []).forEach(c => {
+      const arr = [];
+      (this.byClass[c.id] || []).forEach(ix => {
+        const s = D.amostras[ix]; if (!this.passaFiltros(s)) return; const pr = s.projecoes[k]; if (!pr) return;
+        arr.push([pr[0], pr[1], ix, (s.meta && s.meta.subject) || 0]);
+      });
+      const escondida = ocultas.indexOf(c.id) >= 0;
+      // gravacao do iphone e so umas poucas janelas contra dez mil do
+      // experimento -- sem marca maior por cima ela some no meio da nuvem
+      const ehGravacao = c.id === 'VOCE';
+      series.push({
+        id: 'cls-' + c.id, name: c.label_pt, type: 'scatter', symbol: c.simbolo || 'circle',
+        symbolSize: ehGravacao ? Math.max(22, base * 2.6) : base,
+        z: ehGravacao ? 4 : 2, progressive: 700, progressiveThreshold: 1200, data: arr,
+        itemStyle: {
+          color: semCor ? '#6E6E68' : cor[c.id],
+          borderColor: ehGravacao ? '#FFFFFF' : (S.corPor === 'subject' ? '#2A2A27' : '#FFFFFF'),
+          borderWidth: ehGravacao ? 2 : (base >= 9 ? 1 : 0.6),
+          opacity: escondida ? 0 : (temSel ? dim : 0.92)
+        },
+        emphasis: { scale: 1.5, itemStyle: { borderColor: '#121212', borderWidth: 2 } },
+        silent: escondida
+      });
+      built.push({ id: 'cls-' + c.id, data: arr });
+    });
+
+    const L = (this.lenteOn() && S.anchor) ? this.lenteDe(S.anchor, k) : null;
+    const linhas = [], marcas = [];
+    if (L) {
+      const add = (id, tipo) => {
+        const q = this.pt(id, k); if (!q) return;
+        if (this.ligacoesOn()) linhas.push({ coords: [L.ap, q], lineStyle: { type: tipo === 'ok' ? 'solid' : 'dashed', width: tipo === 'ok' ? 1.6 : 1.2, color: '#121212', opacity: tipo === 'ok' ? 0.8 : 0.45 } });
+        marcas.push({ value: [q[0], q[1], this.idxOf[id], 0], sym: tipo === 'ok' ? 'circle' : 'rect', itemStyle: { borderType: tipo === 'ok' ? 'solid' : 'dashed' } });
+      };
+      L.preservados.forEach(id => add(id, 'ok'));
+      L.perdidos.forEach(id => add(id, 'no'));
+    }
+    series.push({ id: 'lig', type: 'lines', coordinateSystem: 'cartesian2d', polyline: false, silent: true, z: 3, animation: false, data: linhas, tooltip: { show: false } });
+    built.push({ id: 'lig', data: linhas });
+    series.push({
+      id: 'nb', type: 'scatter', z: 5, data: marcas, symbolSize: Math.max(19, base * 2.2), animation: false,
+      symbol: (v, pp) => (pp.data && pp.data.sym) || 'circle',
+      itemStyle: { color: 'transparent', borderColor: '#121212', borderWidth: 2.2, opacity: 1 }
+    });
+    built.push({ id: 'nb', data: marcas });
+
+    const selData = [];
+    S.sel.forEach(id => {
+      const s = this.byId[id]; if (!s || !this.passaFiltros(s)) return; const pr = s.projecoes[k]; if (!pr) return;
+      const c = this.classById[s.label] || {};
+      selData.push({
+        value: [pr[0], pr[1], this.idxOf[id], (s.meta && s.meta.subject) || 0],
+        sym: c.simbolo || 'circle',
+        itemStyle: { color: semCor ? '#6E6E68' : (cor[s.label] || '#6E6E68'), borderColor: '#121212', borderWidth: 2.4, opacity: 1 }
+      });
+    });
+    series.push({ id: 'sel', type: 'scatter', z: 7, data: selData, symbolSize: base * 1.7, animation: false, itemStyle: { opacity: 1 }, symbol: (v, pp) => (pp.data && pp.data.sym) || 'circle' });
+    built.push({ id: 'sel', data: selData });
+
+    const anc = [];
+    if (S.anchor && this.byId[S.anchor] && this.passaFiltros(this.byId[S.anchor]) && this.byId[S.anchor].projecoes[k]) {
+      const pr = this.byId[S.anchor].projecoes[k];
+      const fx = (pr[0] - ext.x0) / ((ext.x1 - ext.x0) || 1), fy = (pr[1] - ext.y0) / ((ext.y1 - ext.y0) || 1);
+      const pos = fy > 0.7 ? (fx > 0.5 ? 'left' : 'right') : (fx > 0.76 ? 'left' : (fx < 0.24 ? 'right' : 'top'));
+      anc.push({ value: [pr[0], pr[1], this.idxOf[S.anchor], 0], label: { position: pos } });
+    }
+    series.push({
+      id: 'anc', type: 'scatter', z: 8, data: anc, symbol: 'circle', symbolSize: Math.max(26, base * 3.2), animation: false,
+      itemStyle: { color: 'transparent', borderColor: '#121212', borderWidth: 2.6, opacity: 1 },
+      labelLayout: { moveOverlap: 'shiftY' },
+      label: {
+        show: !!S.rotulo, formatter: () => S.anchor, position: 'top', distance: 9, color: '#121212',
+        fontSize: 12, fontWeight: 'bold', backgroundColor: '#FFFFFF', borderColor: '#121212',
+        borderWidth: 1, padding: [3, 5], borderRadius: 2, fontFamily: 'monospace'
+      }
+    });
+    built.push({ id: 'anc', data: anc });
+    this.built[i] = built;
+
+    const vm = [];
+    if (S.corPor === 'subject') vm.push({
+      type: 'continuous', show: false, dimension: 3, min: 1, max: this.maxSujeito,
+      seriesIndex: (D.dataset.classes || []).map((c, ix) => ix), inRange: { color: this.RAMPA }
+    });
+
+    const eixo = { type: 'value', min: ext.x0, max: ext.x1, show: false, scale: false };
+    const eixoY = { type: 'value', min: ext.y0, max: ext.y1, show: false, scale: false };
+    const ms = this.msMorph();
+
+    return {
+      animation: !this.reduz, animationDuration: 260, animationDurationUpdate: this.vista() === 'morph' ? ms : 320,
+      animationEasingUpdate: 'cubicInOut', backgroundColor: '#FFFFFF',
+      dataZoom: [
+        { id: 'dzx', type: 'inside', xAxisIndex: 0, filterMode: 'none', throttle: 60, zoomOnMouseWheel: true, moveOnMouseMove: true, moveOnMouseWheel: false, preventDefaultMouseMove: true },
+        { id: 'dzy', type: 'inside', yAxisIndex: 0, filterMode: 'none', throttle: 60, zoomOnMouseWheel: true, moveOnMouseMove: true, moveOnMouseWheel: false, preventDefaultMouseMove: true }
+      ],
+      grid: { left: 10, right: 10, top: Math.min(34, Math.max(12, Math.round((alturaPx || 200) * 0.24))), bottom: Math.min(10, Math.max(4, Math.round((alturaPx || 200) * 0.06))), containLabel: false },
+      xAxis: eixo, yAxis: eixoY, aria: { enabled: false },
+      toolbox: {
+        right: 6, top: 4, itemSize: 13, itemGap: 6, iconStyle: { borderColor: '#3F3F3B' },
+        feature: { brush: { type: ['polygon', 'rect', 'clear'], title: { polygon: 'Laço', rect: 'Retângulo', clear: 'Limpar laço' } } }
+      },
+      brush: {
+        toolbox: ['polygon', 'rect', 'clear'], xAxisIndex: 0, yAxisIndex: 0, throttleType: 'debounce', throttleDelay: 140,
+        brushStyle: { borderWidth: 1.5, borderColor: '#121212', color: 'rgba(18,18,18,0.05)' },
+        outOfBrush: { colorAlpha: 1 }
+      },
+      tooltip: {
+        trigger: 'item', backgroundColor: '#FFFFFF', borderColor: '#121212', borderWidth: 1, padding: [7, 9],
+        extraCssText: 'box-shadow:none;border-radius:2px',
+        textStyle: { color: '#121212', fontSize: 12.5, fontFamily: 'Helvetica Neue,Helvetica,sans-serif' },
+        formatter: pp => {
+          const d = pp.data; const arr = Array.isArray(d) ? d : (d && d.value);
+          if (!arr || arr[2] == null) return '';
+          const s = this.D.amostras[arr[2]]; if (!s) return '';
+          const c = this.classById[s.label] || {};
+          const nb = (s.vizinhos_originais_k10 || []).length;
+          return '<b style="font-family:monospace">' + s.id + '</b><br>' + (c.label_pt || s.label) +
+            '<br>participante ' + ((s.meta && s.meta.subject) || '—') + ' · ' + ((s.meta && s.meta.split) || '—') +
+            '<br>' + nb + ' vizinhos pré-calculados (561D)';
+        }
+      },
+      visualMap: vm, series: series
+    };
+  }
+
+
+  // ---------- inspetor dos dados originais ----------
+  async inflarBase64(texto) {
+    if (!window.DecompressionStream) throw new Error('Este navegador não oferece DecompressionStream para abrir os dados locais.');
+    const binario = atob(texto), bytes = new Uint8Array(binario.length);
+    for (let i = 0; i < binario.length; i += 1) bytes[i] = binario.charCodeAt(i);
+    const fluxo = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'));
+    return new Response(fluxo).arrayBuffer();
+  }
+
+  carregarInterpretacao() {
+    if (this.interpretacaoCarregando || (this.featureData && this.signalData)) return;
+    const I = this.D && this.D.interpretacao;
+    if (!I || !I.features || !I.signals) {
+      this.setState({ interpretacaoErro: 'O arquivo não contém sinais e características para o inspetor.' });
+      return;
+    }
+    this.interpretacaoCarregando = true;
+    Promise.all([this.inflarBase64(I.features.data), this.inflarBase64(I.signals.data)])
+      .then(buffers => {
+        this.featureData = new Int8Array(buffers[0]);
+        this.signalData = new Int16Array(buffers[1]);
+        const nf = I.features.shape[0] * I.features.shape[1];
+        const ns = I.signals.shape[0] * I.signals.shape[1] * I.signals.shape[2];
+        if (this.featureData.length !== nf || this.signalData.length !== ns) throw new Error('Dimensão inesperada após descompactar os dados.');
+        this.interpretacaoCarregando = false;
+        window.__harInterpretacao = { features: this.featureData, signals: this.signalData };
+        this.setState({ interpretacaoPronta: true, interpretacaoErro: null });
+      })
+      .catch(error => {
+        this.interpretacaoCarregando = false;
+        this.setState({ interpretacaoErro: 'Falha ao preparar o inspetor: ' + error.message });
+      });
+  }
+
+  purgarInspetor() {
+    [this.signalChart, this.profileChart].forEach(chart => { if (chart && !chart.isDisposed()) chart.dispose(); });
+    this.signalChart = null; this.profileChart = null;
+    window.__inspectorCharts = null;
+  }
+
+  garantirChart(ref, atual) {
+    const el = ref.current;
+    if (!el) { if (atual && !atual.isDisposed()) atual.dispose(); return null; }
+    if (atual && !atual.isDisposed() && atual.getDom() === el) return atual;
+    if (atual && !atual.isDisposed()) atual.dispose();
+    const orfao = window.echarts.getInstanceByDom(el); if (orfao && !orfao.isDisposed()) orfao.dispose();
+    el.removeAttribute('_echarts_instance_'); while (el.firstChild) el.removeChild(el.firstChild);
+    return window.echarts.init(el, null, { renderer: 'canvas' });
+  }
+
+  syncInspetor() {
+    if (!this.state.sel.length || !this.state.inspetorAberto) return this.purgarInspetor();
+    if (!this.featureData || !this.signalData) { this.carregarInterpretacao(); return; }
+    this.signalChart = this.garantirChart(this.signalRef, this.signalChart);
+    this.profileChart = this.garantirChart(this.profileRef, this.profileChart);
+    if (this.signalChart) { this.signalChart.resize(); this.signalChart.setOption(this.opcaoSinal(), true); }
+    if (this.profileChart) { this.profileChart.resize(); this.profileChart.setOption(this.opcaoPerfil(), true); }
+    window.__inspectorCharts = [this.signalChart, this.profileChart];
+  }
+
+  focoAtual() {
+    const id = this.state.anchor || this.state.sel[0];
+    return id ? this.byId[id] : null;
+  }
+
+  sinalDaAmostra(indice, canal) {
+    const I = this.D.interpretacao.signals, passos = I.shape[2], canais = I.shape[1];
+    const multiplicador = I.quantization_multipliers[canal];
+    const inicio = (indice * canais + canal) * passos, saida = [];
+    for (let t = 0; t < passos; t += 1) saida.push([t / I.sampling_hz, this.signalData[inicio + t] / multiplicador]);
+    return saida;
+  }
+
+  opcaoSinal() {
+    const amostra = this.focoAtual(), I = this.D.interpretacao.signals;
+    if (!amostra) return { series: [] };
+    const inicio = this.state.sinalTipo === 'gyro' ? 3 : 0;
+    const unidade = I.channels[inicio].unit, cores = ['#0072B2', '#E69F00', '#009E73'];
+    const series = [0, 1, 2].map((offset, index) => ({
+      name: ['X', 'Y', 'Z'][index], type: 'line', showSymbol: false, sampling: 'lttb', animation: false,
+      data: this.sinalDaAmostra(this.idxOf[amostra.id], inicio + offset), lineStyle: { width: 1.8, color: cores[index] }, itemStyle: { color: cores[index] }
+    }));
+    return {
+      animation: false, color: cores, aria: { enabled: true, description: 'Sinal temporal nos eixos X, Y e Z da amostra ' + amostra.id + '.' },
+      legend: { top: 7, left: 10, itemWidth: 18, itemHeight: 3, textStyle: { color: '#3F3F3B', fontSize: 11 } },
+      grid: { left: 58, right: 18, top: 38, bottom: 42 },
+      xAxis: { type: 'value', min: 0, max: I.window_seconds - 1 / I.sampling_hz, name: 'tempo (s)', nameLocation: 'middle', nameGap: 27, axisLine: { lineStyle: { color: '#8A8A84' } }, splitLine: { lineStyle: { color: '#EFEFEC' } } },
+      yAxis: { type: 'value', name: unidade, nameGap: 38, nameLocation: 'middle', axisLine: { show: true, lineStyle: { color: '#8A8A84' } }, splitLine: { lineStyle: { color: '#EFEFEC' } } },
+      dataZoom: [{ type: 'inside', xAxisIndex: 0, filterMode: 'none' }],
+      tooltip: { trigger: 'axis', backgroundColor: '#FFFFFF', borderColor: '#121212', textStyle: { color: '#121212', fontSize: 11 }, valueFormatter: value => this.fmt(value, 4) + ' ' + unidade },
+      series: series
+    };
+  }
+
+  perfilSelecao() {
+    if (!this.featureData || !this.state.sel.length) return null;
+    if (this.profileCache && this.profileCache.sel === this.state.sel) return this.profileCache.value;
+    const I = this.D.interpretacao, nomes = I.feature_names, n = nomes.length;
+    const multiplicador = I.features.quantization_multiplier, atual = new Float64Array(n), contagem = {};
+    this.state.sel.forEach(id => {
+      const indice = this.idxOf[id], amostra = this.byId[id]; if (indice == null || !amostra) return;
+      const inicio = indice * n; for (let j = 0; j < n; j += 1) atual[j] += this.featureData[inicio + j] / multiplicador;
+      contagem[amostra.label] = (contagem[amostra.label] || 0) + 1;
+    });
+    const total = Math.max(1, this.state.sel.length); for (let j = 0; j < n; j += 1) atual[j] /= total;
+    const referencia = new Float64Array(n), rotulos = Object.keys(contagem);
+    rotulos.forEach(label => {
+      const media = I.activity_mean_z[label] || [], peso = contagem[label] / total;
+      for (let j = 0; j < n; j += 1) referencia[j] += (media[j] || 0) * peso;
+    });
+    const indices = Array.from({ length: n }, (_, i) => i).sort((a, b) => Math.abs(atual[b]) - Math.abs(atual[a])).slice(0, 8);
+    const foco = this.focoAtual(), classe = foco && this.classById[foco.label];
+    const referenciaLabel = rotulos.length === 1 ? 'média de ' + ((classe && classe.label_pt) || foco.label) : 'média ponderada das atividades selecionadas';
+    const value = { atual: atual, referencia: referencia, indices: indices, referenciaLabel: referenciaLabel, contagem: contagem };
+    this.profileCache = { sel: this.state.sel, value: value }; return value;
+  }
+
+  nomeFeature(nome) {
+    return String(nome || '')
+      .replace(/^tBodyAccJerk/, 'tranco acel. · tempo')
+      .replace(/^fBodyAccJerk/, 'tranco acel. · frequência')
+      .replace(/^tBodyAcc/, 'acel. corporal · tempo')
+      .replace(/^fBodyAcc/, 'acel. corporal · frequência')
+      .replace(/^tGravityAcc/, 'gravidade · tempo')
+      .replace(/^tBodyGyroJerk/, 'tranco giro · tempo')
+      .replace(/^tBodyGyro/, 'giroscópio · tempo')
+      .replace(/^fBodyGyro/, 'giroscópio · frequência')
+      .replace(/-mean\(\)/, ' · média').replace(/-std\(\)/, ' · desvio').replace(/-max\(\)/, ' · máximo').replace(/-min\(\)/, ' · mínimo');
+  }
+
+  opcaoPerfil() {
+    const perfil = this.perfilSelecao(); if (!perfil) return { series: [] };
+    const nomes = perfil.indices.map(i => this.nomeFeature(this.D.interpretacao.feature_names[i]));
+    return {
+      animation: false, color: ['#0072B2', '#E69F00'], aria: { enabled: true, description: 'Oito características padronizadas mais fortes da seleção e sua referência por atividade.' },
+      legend: { top: 6, left: 8, textStyle: { color: '#3F3F3B', fontSize: 10.5 } },
+      grid: { left: 168, right: 16, top: 42, bottom: 28 },
+      xAxis: { type: 'value', name: 'desvios-padrão', nameLocation: 'middle', nameGap: 22, axisLine: { lineStyle: { color: '#8A8A84' } }, splitLine: { lineStyle: { color: '#EFEFEC' } } },
+      yAxis: { type: 'category', inverse: true, data: nomes, axisLabel: { width: 158, overflow: 'truncate', color: '#3F3F3B', fontSize: 10.5 }, axisTick: { show: false }, axisLine: { lineStyle: { color: '#8A8A84' } } },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: '#FFFFFF', borderColor: '#121212', textStyle: { color: '#121212', fontSize: 11 }, valueFormatter: value => this.fmt(value, 2) + 'σ' },
+      series: [
+        { name: this.state.sel.length === 1 ? 'amostra' : 'seleção', type: 'bar', data: perfil.indices.map(i => perfil.atual[i]), barMaxWidth: 11, itemStyle: { color: '#0072B2' } },
+        { name: 'referência', type: 'bar', data: perfil.indices.map(i => perfil.referencia[i]), barMaxWidth: 11, itemStyle: { color: '#E69F00' } }
+      ]
+    };
+  }
+
+  vizinhancaProjetada(id, chave) {
+    const cacheId = id + '@' + chave;
+    if (this.neighborCache[cacheId]) return this.neighborCache[cacheId];
+    const amostra = this.byId[id], ponto = amostra && amostra.projecoes[chave]; if (!ponto) return { preservados: [], projetados: [] };
+    const distancias = [];
+    (this.D.amostras || []).forEach(s => {
+      if (s.id === id) return; const p = s.projecoes[chave]; if (!p) return;
+      const dx = p[0] - ponto[0], dy = p[1] - ponto[1]; distancias.push([dx * dx + dy * dy, s.id]);
+    });
+    distancias.sort((a, b) => a[0] - b[0]);
+    const projetados = distancias.slice(0, 10).map(item => item[1]);
+    const originais = amostra.vizinhos_originais_k10 || [];
+    const preservados = originais.filter(vizinho => projetados.indexOf(vizinho) >= 0);
+    const resultado = { preservados: preservados, projetados: projetados };
+    this.neighborCache[cacheId] = resultado; return resultado;
+  }
+
+  chipVizinho(id) {
+    const habilitado = this.passaFiltros(this.byId[id]);
+    return { label: id.replace('har_', '#'), disabled: !habilitado, op: habilitado ? 1 : .42, title: habilitado ? 'Selecionar ' + id : id + ' está fora dos filtros atuais', on: () => this.selecionar(id, false) };
+  }
+
+  resumoVizinhos() {
+    const ids = this.state.sel, foco = this.focoAtual(), chaves = ['pca', 'tsne', 'umap'].map(t => this.state.cfg[t]).filter(Boolean);
+    if (!foco) return [];
+    if (ids.length === 1) {
+      const originais = foco.vizinhos_originais_k10 || [];
+      const cards = [{ metodo: 'Original 561D', valor: originais.length + '/10', nota: 'referência nos atributos padronizados', ids: originais.map(id => this.chipVizinho(id)) }];
+      chaves.forEach(chave => {
+        const r = this.vizinhancaProjetada(foco.id, chave), tecnica = this.nomeTech(chave.split('/')[0]);
+        cards.push({ metodo: tecnica, valor: r.preservados.length + '/10', nota: 'vizinhos originais ainda próximos', ids: r.preservados.map(id => this.chipVizinho(id)) });
+      });
+      return cards;
+    }
+    const limite = Math.min(12, ids.length), amostraIds = [];
+    for (let i = 0; i < limite; i += 1) amostraIds.push(ids[Math.floor(i * ids.length / limite)]);
+    const cards = [{ metodo: 'Original 561D', valor: 'K=10', nota: 'referência para cada ponto', ids: [] }];
+    chaves.forEach(chave => {
+      let soma = 0; amostraIds.forEach(id => { soma += this.vizinhancaProjetada(id, chave).preservados.length; });
+      cards.push({ metodo: this.nomeTech(chave.split('/')[0]), valor: this.fmt(soma / amostraIds.length, 1) + '/10', nota: 'média em ' + amostraIds.length + ' pontos da seleção', ids: [] });
+    });
+    return cards;
+  }
+
+  alternarInspetor = () => {
+    const abrir = !this.state.inspetorAberto;
+    this.setState({ inspetorAberto: abrir }, () => {
+      if (!abrir) return;
+      setTimeout(() => {
+        const alvo = document.querySelector('[data-testid="inspetor-amostra"]');
+        if (alvo && alvo.scrollIntoView) alvo.scrollIntoView({ behavior: this.reduz ? 'auto' : 'smooth', block: 'start' });
+      }, 80);
+    });
+  };
+
+  inspectorViewModel() {
+    const S = this.state, amostra = this.focoAtual();
+    if (!S.sel.length || !amostra) return {
+      mostraInspetor: false,
+      btnInspetor: { label: 'Detalhes: selecione um ponto', on: this.alternarInspetor, disabled: true, bg: '#FFFFFF', fg: '#5F5F59', op: .45 }
+    };
+    const btnInspetor = {
+      label: S.inspetorAberto ? 'Fechar detalhes da amostra' : 'Abrir detalhes da amostra', on: this.alternarInspetor,
+      disabled: false, bg: S.inspetorAberto ? '#121212' : '#FFFFFF', fg: S.inspetorAberto ? '#FFFFFF' : '#121212', op: 1
+    };
+    if (!S.inspetorAberto) return { mostraInspetor: false, btnInspetor: btnInspetor };
+    const classe = this.classById[amostra.label] || {}, perfil = this.perfilSelecao(), cor = this.paleta();
+    const contagem = {}; S.sel.forEach(id => { const s = this.byId[id]; if (s) contagem[s.label] = (contagem[s.label] || 0) + 1; });
+    const composicao = Object.keys(contagem).sort((a, b) => contagem[b] - contagem[a]).map(label => ({
+      label: (this.classById[label] && this.classById[label].label_pt) || label, n: contagem[label], pct: 100 * contagem[label] / S.sel.length,
+      pctTexto: this.fmt(100 * contagem[label] / S.sel.length, 1) + '%', cor: cor[label] || '#6E6E68'
+    }));
+    const participantes = new Set(S.sel.map(id => this.byId[id] && this.byId[id].meta && this.byId[id].meta.subject).filter(Boolean));
+    const splits = new Set(S.sel.map(id => this.byId[id] && this.byId[id].meta && this.byId[id].meta.split).filter(Boolean));
+    const features = perfil ? perfil.indices.map(i => ({ nome: this.D.interpretacao.feature_names[i], atual: this.fmt(perfil.atual[i], 2) + 'σ', referencia: this.fmt(perfil.referencia[i], 2) + 'σ' })) : [];
+    return {
+      mostraInspetor: this.modo() === 'laboratorio', btnInspetor: btnInspetor, inspectorPronto: !!(S.interpretacaoPronta && perfil), inspectorCarregando: !S.interpretacaoPronta && !S.interpretacaoErro,
+      inspectorErro: S.interpretacaoErro, inspectorTitulo: S.sel.length === 1 ? 'Amostra ' + amostra.id : 'Seleção de ' + S.sel.length.toLocaleString('pt-BR') + ' amostras',
+      inspectorSubtitulo: S.sel.length === 1 ? 'Um ponto é uma janela temporal, não uma pessoa nem uma posição física.' : 'O sinal pertence à amostra em foco; perfil, vizinhança e composição resumem a seleção vinculada.',
+      inspectorMeta: [
+        { k: 'atividade em foco', v: classe.label_pt || amostra.label }, { k: 'participante', v: String((amostra.meta && amostra.meta.subject) || '—') },
+        { k: 'conjunto', v: (amostra.meta && amostra.meta.split) || '—' }, { k: 'linha de origem', v: String((amostra.meta && amostra.meta.source_row) || '—') },
+        { k: 'seleção', v: S.sel.length.toLocaleString('pt-BR') + ' janela(s)' }, { k: 'abrangência', v: participantes.size + ' participante(s) · ' + Array.from(splits).join('+') }
+      ],
+      segSinal: this.seg([{ v: 'acc', label: 'Aceleração X/Y/Z' }, { v: 'gyro', label: 'Giroscópio X/Y/Z' }], S.sinalTipo, tipo => this.setState({ sinalTipo: tipo })),
+      inspectorSinalTitulo: amostra.id + ' · ' + (classe.label_pt || amostra.label), refSinal: this.signalRef, refPerfil: this.profileRef,
+      ariaSinal: 'Sinais X, Y e Z da amostra ' + amostra.id + ' ao longo de 2,56 segundos.', ariaPerfil: 'Comparação das oito características padronizadas dominantes da seleção.',
+      inspectorReferencia: perfil ? perfil.referenciaLabel : 'média da atividade', inspectorFeatures: features, inspectorVizinhos: this.resumoVizinhos(),
+      inspectorComposicao: composicao, inspectorComposicaoTitulo: S.sel.length === 1 ? 'Uma janela rotulada' : S.sel.length.toLocaleString('pt-BR') + ' janelas por atividade',
+      inspectorComposicaoNota: S.sel.length === 1 ? 'A cor é um rótulo posterior; não entrou no ajuste das projeções.' : 'O laço permite verificar se um agrupamento visual corresponde a uma ou várias atividades.'
+    };
+  }
+
+  // ---------- navegacao ----------
+  onKey = e => {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+    if (e.key === 'Escape') return this.limpar();
+    if (this.modo() !== 'apresentacao') return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); this.irCena(this.state.cena + 1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.irCena(this.state.cena - 1); }
+    else if (e.key === 'Home') this.irCena(0);
+    else if (e.key === 'End') this.irCena(this.CENAS.length - 1);
+  };
+
+  irCena = n => {
+    const i = Math.max(0, Math.min(this.CENAS.length - 1, n));
+    const c = this.CENAS[i];
+    const patch = Object.assign({ cena: i }, c.estado || {});
+    if (c.ancora && !this.state.anchor && this.ancoraPadrao) { patch.anchor = this.ancoraPadrao; patch.sel = [this.ancoraPadrao]; }
+    this.setState(patch);
+  };
+
+  seg(itens, ativo, onPick) {
+    return itens.map(o => ({
+      label: o.label, pressed: o.v === ativo, on: () => onPick(o.v),
+      bg: o.v === ativo ? '#121212' : '#FFFFFF', fg: o.v === ativo ? '#FFFFFF' : '#121212'
+    }));
+  }
+
+  botao(label, on, ativo) {
+    return { label: label, on: on, pressed: !!ativo, bg: ativo ? '#121212' : '#FFFFFF', fg: ativo ? '#FFFFFF' : '#121212' };
+  }
+
+  anuncio(paineis) {
+    const S = this.state;
+    const rot = { comparar: 'comparar três projeções', pca: 'PCA em foco', tsne: 'parâmetros do t-SNE', umap: 'parâmetros do UMAP', umap3d: 'UMAP em três dimensões', morph: 'morph entre projeções', contraste: 'bonito vs. fiel', ficha: 'ficha do dataset', encerramento: 'encerramento' };
+    const partes = [(this.modo() === 'apresentacao' ? 'Apresentação, cena ' + (S.cena + 1) + ' de ' + this.CENAS.length + '. ' : 'Laboratório. ') + 'Vista: ' + (rot[this.vista()] || this.vista()) + '.'];
+    if (!S.sel.length) partes.push(this.vista() === 'umap3d' ? 'Nenhuma amostra selecionada — clique em um ponto no espaço 3D.' : 'Nenhuma amostra selecionada — clique em um ponto ou use o laço.');
+    else {
+      const cont = {}; S.sel.forEach(id => { const s = this.byId[id]; if (s) cont[s.label] = (cont[s.label] || 0) + 1; });
+      partes.push(S.sel.length + (S.sel.length === 1 ? ' amostra selecionada' : ' amostras selecionadas') + ': ' +
+        Object.keys(cont).map(c => (this.classById[c] ? this.classById[c].label_pt : c) + ' ' + cont[c]).join(', ') + '.');
+    }
+    if (S.anchor && this.lenteOn()) {
+      const t = paineis.filter(p => p.temLente).map(p => { const L = this.lenteDe(S.anchor, p.cfgKey); return p.tecnica + ' ' + L.preservados.length + ' de ' + L.K; });
+      if (t.length) partes.push('Vizinhos preservados — ' + t.join('; ') + '.');
+    }
+    const filtrosAtivos = [];
+    if (!this.faixaCompleta()) filtrosAtivos.push('participantes ' + this.filtroSujeitoMinAtual() + '–' + this.filtroSujeitoMaxAtual());
+    if (this.filtroSplitAtual() !== 'todos') filtrosAtivos.push({ train: 'treino', test: 'teste', iphone: 'suas gravações no iPhone' }[this.filtroSplitAtual()] || this.filtroSplitAtual());
+    if (S.ocultas.length) filtrosAtivos.push((this.D.dataset.classes || []).length - S.ocultas.length + ' atividade(s) ativa(s)');
+    partes.push(this.totalVisivel().toLocaleString('pt-BR') + ' de ' + (this.D.amostras || []).length.toLocaleString('pt-BR') + ' amostras visíveis' + (filtrosAtivos.length ? ' — ' + filtrosAtivos.join(', ') : '') + '.');
+    if (S.cvd !== 'padrao') partes.push('Simulação de visão de cores: ' + S.cvd + ' (paleta vem pronta do dado).');
+    return partes.join(' ');
+  }
+
+  renderVals() {
+    const S = this.state;
+    if (!this.state.pronto) return { erro: S.erro, dsNome: S.erro ? 'Erro ao carregar' : 'Carregando dados…', temPaineis: false, mostraLegenda: false, paineis: [], legenda: [] };
+
+    const D = this.D, ps = this.paineis(), v = this.vista(), modo = this.modo();
+    const cor = this.paleta();
+    const m3 = ((D.metricas_3d || {})[this.umap3dKey]) || {};
+    const inspetor = this.inspectorViewModel();
+    const legenda = (D.dataset.classes || []).map(c => {
+      const vis = S.ocultas.indexOf(c.id) < 0;
+      return {
+        label: c.label_pt, cor: S.corPor === 'none' ? '#6E6E68' : cor[c.id], glifoTexto: this.glifoTexto(c),
+        n: this.contagemClasse(c.id), visivel: vis, traco: vis ? '#121212' : '#8A8A84',
+        bg: '#FFFFFF', fg: '#121212', fgSuave: '#5F5F59', op: vis ? 1 : 0.45,
+        on: () => this.alternarClasse(c.id, vis)
+      };
+    });
+    const linhas = S.sel.slice(0, 60).map(id => {
+      const s = this.byId[id] || {}; const c = this.classById[s.label] || {};
+      const L = (this.lenteOn() && S.anchor && ps[0]) ? this.lenteDe(S.anchor, ps[0].cfgKey) : null;
+      let papel = '—';
+      if (id === S.anchor) papel = 'amostra em foco';
+      else if (L && L.preservados.indexOf(id) >= 0) papel = 'vizinho preservado';
+      else if (L && L.perdidos.indexOf(id) >= 0) papel = 'vizinho distante';
+      return {
+        id: id, atividade: c.label_pt || s.label || '—', glifoTexto: this.glifoTexto(c),
+        cor: S.corPor === 'none' ? '#6E6E68' : (cor[s.label] || '#6E6E68'),
+        subject: (s.meta && s.meta.subject) != null ? s.meta.subject : '—',
+        split: (s.meta && s.meta.split) || '—', papel: papel
+      };
+    });
+
+    return {
+      erro: S.erro,
+      dsNome: D.dataset.nome, dsFonte: D.dataset.fonte,
+      dsResumo: D.dataset.n_amostras_total.toLocaleString('pt-BR') + ' amostras · ' + D.dataset.n_features_originais + ' atributos · ' + (D.dataset.classes || []).length + ' atividades · ' + D.dataset.participantes + ' participantes',
+      nCarregadas: (D.amostras || []).length,
+      fichaNumeros: [
+        { n: D.dataset.n_amostras_total.toLocaleString('pt-BR'), rot: 'amostras (janelas de sinal)' },
+        { n: D.dataset.n_features_originais, rot: 'atributos por amostra' },
+        { n: (D.dataset.classes || []).length, rot: 'atividades rotuladas' },
+        { n: D.dataset.participantes, rot: 'participantes' }
+      ],
+      avisos: this.AVISOS.map((t, i) => ({ n: String(i + 1).padStart(2, '0'), t: t })),
+
+      ehLab: modo === 'laboratorio', ehApresentacao: modo === 'apresentacao',
+      ehFicha: v === 'ficha', ehEncerramento: v === 'encerramento',
+      ehMorph: v === 'morph' && modo === 'laboratorio', ehUmap3d: v === 'umap3d',
+      temPaineis: ps.length > 0, mostraLegenda: ps.length > 0 || v === 'umap3d',
+      ehCorClasse: S.corPor === 'label', ehCorSujeito: S.corPor === 'subject', ehSemCor: S.corPor === 'none',
+      maxSujeito: this.maxSujeito,
+      mostraMetodoNota: modo === 'laboratorio' && (v === 'pca' || v === 'tsne' || v === 'umap'),
+      metodoTitulo: ({ pca: 'PCA · projeção linear', tsne: 't-SNE · três perplexidades', umap: 'UMAP · três escalas de vizinhança' })[v] || '',
+      metodoNota: ({ pca: 'Um painel amplo destaca PC1 × PC2 e a variância explicada.', tsne: 'Compare perplexidade 10, 30 e 50 lado a lado.', umap: 'Compare perfis local, equilibrado e amplo lado a lado.' })[v] || '',
+
+      segModo: this.seg([{ v: 'apresentacao', label: 'Apresentação' }, { v: 'laboratorio', label: 'Laboratório' }], modo, x => this.setState({ modo: x })),
+      segVista: this.seg([{ v: 'comparar', label: 'Comparar' }, { v: 'pca', label: 'PCA' }, { v: 'tsne', label: 't-SNE' }, { v: 'umap', label: 'UMAP' }, { v: 'umap3d', label: 'UMAP 3D' }, { v: 'harlive', label: 'HAR live' }, { v: 'morph', label: 'Morph' }, { v: 'contraste', label: 'Bonito vs. fiel' }], S.vistaLab, x => this.setState({ vistaLab: x })),
+      segCor: this.seg([{ v: 'label', label: 'Atividade' }, { v: 'subject', label: 'Participante' }, { v: 'none', label: 'Sem cor' }], S.corPor, x => this.setState({ corPor: x })),
+      segMs: this.seg([{ v: 300, label: '300 ms' }, { v: 500, label: '500 ms' }, { v: 700, label: '700 ms' }], S.morphMs, x => this.setState({ morphMs: x })),
+      cvdOpcoes: this.CVD, cvdValor: S.cvd, onCvd: e => this.setState({ cvd: e.target.value }),
+      filtroSujeitoMinValor: this.filtroSujeitoMinAtual(), filtroSujeitoMaxValor: this.filtroSujeitoMaxAtual(),
+      filtroSujeitoMinTexto: 'Participante ' + this.filtroSujeitoMinAtual(), filtroSujeitoMaxTexto: 'Participante ' + this.filtroSujeitoMaxAtual(),
+      onFiltroSujeitoMin: e => this.alterarFaixa('min', e.target.value), onFiltroSujeitoMax: e => this.alterarFaixa('max', e.target.value),
+      faixaInicioPct: ((this.filtroSujeitoMinAtual() - 1) / Math.max(1, this.maxSujeito - 1)) * 100,
+      faixaFimPct: 100 - ((this.filtroSujeitoMaxAtual() - 1) / Math.max(1, this.maxSujeito - 1)) * 100,
+      faixaMinZ: this.filtroSujeitoMinAtual() >= this.maxSujeito - 1 ? 4 : 3, faixaMaxZ: 4,
+      faixaRotulo: this.faixaCompleta() ? 'Todos (1–' + this.maxSujeito + ')' : (this.filtroSujeitoMinAtual() === this.filtroSujeitoMaxAtual() ? 'Somente ' + this.filtroSujeitoMinAtual() : this.filtroSujeitoMinAtual() + '–' + this.filtroSujeitoMaxAtual()),
+      filtroSplitValor: this.filtroSplitAtual(),
+      filtroSplitOpcoes: [{ v: 'todos', label: 'Tudo' }].concat(this.splits.map(v => ({ v: v, label: v === 'train' ? 'Treino' : (v === 'test' ? 'Teste' : (v === 'iphone' ? 'iPhone (suas gravações)' : v)) }))),
+      onFiltroSplit: e => this.aplicarFiltros(this.filtroSujeitoMinAtual(), this.filtroSujeitoMaxAtual(), e.target.value),
+      filtroResumo: this.totalVisivel().toLocaleString('pt-BR') + ' de ' + (D.amostras || []).length.toLocaleString('pt-BR') + ' amostras visíveis',
+      filtrosLimpos: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && !S.ocultas.length,
+      opLimparFiltros: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && !S.ocultas.length ? 0.45 : 1,
+      onLimparFiltros: this.limparFiltros,
+
+      ref3d: this.plot3dRef, onResetCamera3d: this.resetCamera3d, displayControles2d: v === 'umap3d' ? 'none' : 'inline-block',
+      umap3dParams: 'n_components 3 · n_neighbors 30 · min_dist 0,10 · entrada 561D padronizada · seed 42',
+      umap3dMetricas: [
+        { k: 'pontos', v: this.totalVisivel().toLocaleString('pt-BR') },
+        { k: 'trust k10', v: this.fmt(m3.trustworthiness_k10, 3) },
+        { k: 'cont k10', v: this.fmt(m3.continuity_k10, 3) },
+        { k: 'tempo', v: this.fmtTempo(m3.tempo_ms) }
+      ],
+      aria3d: 'UMAP tridimensional pré-calculado com ' + this.totalVisivel() + ' amostras visíveis e ' + S.sel.length + ' selecionada(s). Eixos sem escala semântica; use a tabela para leitura textual.',
+      umap3dSelecao: S.sel.length ? S.sel.length + (S.sel.length === 1 ? ' amostra selecionada' : ' amostras selecionadas') : 'nenhuma seleção',
+      ...inspetor,
+
+      btnLente: this.botao('Lente de vizinhança', () => this.setState({ lente: !this.lenteOn() }), this.lenteOn()),
+      btnLigacoes: this.botao('Ligações', () => this.setState({ ligacoes: !this.ligacoesOn() }), this.ligacoesOn()),
+      btnAvancado: this.botao('Controles avançados', () => this.setState({ avancado: !S.avancado }), S.avancado),
+      btnRotulo: this.botao('Rótulo do id no gráfico', () => this.setState({ rotulo: !S.rotulo }), S.rotulo),
+      btnMorph: this.botao(S.morphOn ? 'Pausar' : 'Animar', () => this.morph(), S.morphOn),
+      btnTabela: this.botao((S.tabela ? 'Ocultar' : 'Mostrar') + ' tabela da seleção (' + S.sel.length + ')', () => this.setState({ tabela: !S.tabela }), S.tabela),
+      morphNota: (this.reduz ? 'movimento reduzido ativo: transição instantânea. ' : '') + 'PCA → UMAP → t-SNE, conjunto estável de ' + this.totalVisivel() + ' pontos visíveis.',
+      avancadoAberto: S.avancado && modo === 'laboratorio',
+      pontoValor: this.ponto(), onPonto: e => this.setState({ ponto: Number(e.target.value) }),
+      atenValor: Math.round(this.aten() * 100), onAten: e => this.setState({ aten: Number(e.target.value) }),
+
+      cenaNum: S.cena + 1, cenaTotal: this.CENAS.length, cenaTitulo: this.cena().titulo,
+      cenaNota: this.cena().nota + (v === 'umap' && (this.porTech['umap'] || []).length < 2 && (this.faltantes['umap'] || []).length
+        ? ' Este arquivo traz coordenadas de 1 perfil; os outros (' + this.faltantes['umap'].map(x => x.split('/')[1]).join(', ') + ') aparecem desativados no seletor, com suas métricas já registradas.' : ''),
+      onProx: () => this.irCena(S.cena + 1), onAnt: () => this.irCena(S.cena - 1),
+      semProx: S.cena >= this.CENAS.length - 1, semAnt: S.cena <= 0,
+
+      paineis: ps, legenda: legenda, lenteOn: v !== 'umap3d' && this.lenteOn() && !!S.anchor,
+      anuncio: this.anuncio(ps), semSelecao: S.sel.length === 0, onLimpar: this.limpar, onReenquadrar: this.reenquadrar,
+      tabelaAberta: S.tabela, onTabela: () => this.setState({ tabela: !S.tabela }),
+      tabelaCols: ['id da amostra', 'atividade', 'participante', 'conjunto', 'papel na seleção'],
+      tabelaLinhas: linhas,
+      tabelaLegenda: 'Seleção atual: ' + S.sel.length + ' amostra(s)' + (S.sel.length > 60 ? ' — exibindo as 60 primeiras' : '') + '. A tabela lista apenas a seleção, nunca o dataset inteiro.',
+      dica: v === 'umap3d' ? 'arraste rotaciona · roda aproxima · clique seleciona (shift soma) · duplo clique restaura a câmera' : (modo === 'apresentacao' ? '← → cenas · clique seleciona · ' : 'clique seleciona (shift soma) · ') + 'arraste move · roda dá zoom · laço/retângulo no canto do painel (Esc solta a ferramenta e limpa)'
+    };
+  }
+
+  morph() {
+    if (this.state.morphOn) { clearInterval(this.timer); this.timer = null; return this.setState({ morphOn: false }); }
+    const passo = () => this.setState(s => ({ morphI: (s.morphI + 1) % Math.max(1, this.ordemMorph().length) }));
+    this.timer = setInterval(passo, this.state.morphMs + 900);
+    this.setState({ morphOn: true }, passo);
+  }
+}
+</script>
+</body>
+</html>

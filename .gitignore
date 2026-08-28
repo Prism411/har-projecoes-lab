@@ -1,0 +1,12 @@
+.venv/
+.cache/
+results/cache/
+reference/
+web/vendor/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# movimento corporal de quem gravou pelo iphone: dado pessoal, fica so na maquina
+gravacoes-iphone.json
+gravacoes-iphone.parcial

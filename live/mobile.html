@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Participante 31 — captura</title>
+  <link rel="stylesheet" href="/assets/shared.css">
+  <link rel="stylesheet" href="/assets/mobile.css">
+  <script src="/assets/mobile.js" defer></script>
+</head>
+<body>
+  <main class="mobile-shell">
+    <header class="mobile-header">
+      <p class="eyebrow">HAR / Participante 31</p>
+      <h1>Seu movimento entra no experimento.</h1>
+      <p>O Safari envia aceleração e rotação ao notebook. Nenhuma posição corporal é reconstruída.</p>
+    </header>
+
+    <section class="connection-strip" aria-label="Estado da captura">
+      <div><span id="secure-dot" class="status-dot"></span><span id="secure-label">Verificando HTTPS</span></div>
+      <div><span id="socket-dot" class="status-dot"></span><span id="socket-label">Conectando ao notebook</span></div>
+      <div><span id="sensor-dot" class="status-dot"></span><span id="sensor-label">Sensores não autorizados</span></div>
+    </section>
+
+    <div id="message" class="notice" role="status" aria-live="polite">
+      Abra esta página diretamente no Safari e mantenha a tela ligada.
+    </div>
+
+    <section class="stage" aria-labelledby="permission-title">
+      <div class="stage-heading">
+        <span class="stage-number">1</span>
+        <div>
+          <h2 id="permission-title">Conectar sensores</h2>
+          <p>O iPhone pedirá acesso ao acelerômetro e ao giroscópio.</p>
+        </div>
+      </div>
+      <button id="permission-button" class="primary" type="button">Permitir sensores</button>
+    </section>
+
+    <section class="stage" aria-labelledby="placement-title">
+      <div class="stage-heading">
+        <span class="stage-number">2</span>
+        <div>
+          <h2 id="placement-title">Preparar o aparelho</h2>
+          <p>Retrato, tela para fora, preso firmemente na cintura.</p>
+        </div>
+      </div>
+      <div class="placement" aria-label="Orientação do iPhone na cintura">
+        <div class="waist-line"></div>
+        <div class="phone-shape"><span></span></div>
+        <div class="axis axis-x">X →</div>
+        <div class="axis axis-y">Y ↑</div>
+        <div class="axis axis-z">Z ⊙</div>
+      </div>
+      <button id="calibrate-button" class="secondary" type="button" disabled>Calibrar parado por 3 s</button>
+    </section>
+
+    <section class="stage" aria-labelledby="record-title">
+      <div class="stage-heading">
+        <span class="stage-number">3</span>
+        <div>
+          <h2 id="record-title">Gravar atividade</h2>
+          <p>Escolha a ação instruída antes de começar.</p>
+        </div>
+      </div>
+      <label class="field">
+        <span>Atividade</span>
+        <select id="activity-select">
+          <option value="WALKING">Andando</option>
+          <option value="WALKING_UPSTAIRS">Subindo escada</option>
+          <option value="WALKING_DOWNSTAIRS">Descendo escada</option>
+          <option value="SITTING">Sentado</option>
+          <option value="STANDING">Em pé</option>
+          <option value="LAYING">Deitado</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Duração</span>
+        <select id="duration-select">
+          <option value="10">10 segundos</option>
+          <option value="15">15 segundos</option>
+          <option value="20">20 segundos</option>
+        </select>
+      </label>
+      <div class="record-readout">
+        <strong id="timer">00:00.0</strong>
+        <span id="sample-rate">0,0 Hz observados</span>
+      </div>
+      <button id="record-button" class="primary" type="button" disabled>Iniciar gravação</button>
+      <button id="stop-button" type="button" hidden>Parar agora</button>
+    </section>
+
+    <section class="diagnostics" aria-labelledby="diagnostics-title">
+      <div>
+        <p class="eyebrow" id="diagnostics-title">Leitura atual</p>
+        <p>Aceleração (<span id="acceleration-source">aguardando</span>) <span id="acceleration-value" class="mono">—</span> m/s²</p>
+        <p>Rotação <span id="rotation-value" class="mono">—</span> °/s</p>
+      </div>
+      <button id="export-button" type="button" disabled>Exportar último CSV</button>
+    </section>
+  </main>
+</body>
+</html>
