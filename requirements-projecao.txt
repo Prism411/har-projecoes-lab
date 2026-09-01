@@ -1,5 +1,5 @@
-# dependencias do espaco HAR live (projecao da gravacao do iphone)
-# relay funciona sem elas; so a projecao fica indisponivel
+# Dependências do espaço HAR live (projeção da gravação do iPhone).
+# O relay funciona sem elas; só a projeção fica indisponível.
 numpy>=1.26,<3
 scikit-learn>=1.4,<2
 umap-learn>=0.5.8,<0.6

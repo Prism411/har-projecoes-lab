@@ -1,13 +1,13 @@
-"""acrescenta ao laboratorio a vista do espaco compartilhado com o iphone.
+"""Acrescenta ao laboratório a vista do espaço compartilhado com o iPhone.
 
-nao mexe no `har-data.js` oficial. entra por um arquivo a parte,
-`web/har-live-data.js`, que se funde ao `window.HAR_DADOS` antes do app subir:
-cada amostra ganha a projecao `harlive/comum-128` e o painel fica do lado de
-PCA, t-SNE e UMAP, com os mesmos filtros.
+Nada do `har-data.js` oficial é alterado. A vista entra por um arquivo à parte,
+`web/har-live-data.js`, que se funde ao `window.HAR_DADOS` antes de o aplicativo
+iniciar: cada amostra ganha a projeção `harlive/comum-128` e o painel passa a
+existir ao lado de PCA, t-SNE e UMAP, com os mesmos filtros.
 
-a vista oficial de 561 caracteristicas continua intacta; esta e o espaco de 128
-caracteristicas extraidas igual do HAR e do navegador -- unico lugar onde uma
-gravacao nova entra de fato por `transform()`.
+A vista oficial de 561 características continua intacta; esta é o espaço de 128
+características extraídas igualmente do HAR e do navegador, único lugar em que
+uma gravação nova pode entrar por `transform()`.
 """
 
 from __future__ import annotations
@@ -32,11 +32,12 @@ CHAVES = {
     "umap": "harlive/umap-comum-128",
     "tsne": "harlive/tsne-comum-128",
 }
+CHAVE_3D = "harlive3d/umap-comum-128"
 VIZINHANCAS = (5, 10, 15, 30, 50)
 
 
 def confiabilidade(altas: np.ndarray, baixas: np.ndarray, k: int) -> tuple[float, float]:
-    """trustworthiness e continuity entre o espaco de entrada e a projecao."""
+    """Trustworthiness e continuity entre o espaço de entrada e a projeção."""
     total = len(altas)
     vizinhos_altas = NearestNeighbors(n_neighbors=k + 1).fit(altas).kneighbors(return_distance=False)[:, 1:]
     vizinhos_baixas = NearestNeighbors(n_neighbors=k + 1).fit(baixas).kneighbors(return_distance=False)[:, 1:]
@@ -61,7 +62,7 @@ def sobreposicao(altas: np.ndarray, baixas: np.ndarray, k: int) -> float:
 
 
 def metricas_de(altas, baixas, rotulos, amostra, parametros, entrada, tempo_ms):
-    """mesmas medidas que o laboratorio mostra pras projecoes oficiais."""
+    """Mesmas medidas que o laboratório mostra para as projeções oficiais."""
     a, b = altas[amostra], baixas[amostra]
     trust, cont, overlap = {}, {}, {}
     for k in VIZINHANCAS:
@@ -139,6 +140,26 @@ def main() -> int:
             flush=True,
         )
 
+    # a vista tridimensional do laboratório também precisa existir no espaço
+    # comum, senão a turma some justamente da vista mais vistosa
+    pacote["chave_3d"] = CHAVE_3D
+    pacote["coordenadas_3d"] = [
+        [round(float(v), 4) for v in ponto] for ponto in referencia["coordenadas_3d"]
+    ]
+    pacote["metricas_3d"] = {
+        "tempo_ms": int((time.perf_counter() - inicio) * 1000),
+        "parametros": {
+            "n_components": 3,
+            "n_neighbors": espaco["parametros"]["vizinhos_umap"],
+            "min_dist": espaco["parametros"]["distancia_minima_umap"],
+            "metric": "euclidean",
+            "entrada": "128D comuns ao HAR e ao navegador, padronizadas",
+            "seed": espaco["semente"],
+        },
+        "trustworthiness_k10": pacote["metricas"]["umap"]["trustworthiness_k10"],
+        "continuity_k10": pacote["metricas"]["umap"]["continuity_k10"],
+    }
+
     pacote["resumo"] = {
         "caracteristicas": espaco["caracteristicas"],
         "acuracia_knn10": espaco["acuracia_knn10"],
@@ -162,6 +183,15 @@ def main() -> int:
         "    }\n"
         "    dados.metricas[chave] = pacote.metricas[tecnica];\n"
         "  });\n"
+        "  const total3d = Math.min(dados.amostras.length, pacote.coordenadas_3d.length);\n"
+        "  for (let i = 0; i < total3d; i += 1) {\n"
+        "    const amostra = dados.amostras[i];\n"
+        "    amostra.projecoes_3d = amostra.projecoes_3d || {};\n"
+        "    amostra.projecoes_3d[pacote.chave_3d] = pacote.coordenadas_3d[i];\n"
+        "  }\n"
+        "  dados.metricas_3d = dados.metricas_3d || {};\n"
+        "  dados.metricas_3d[pacote.chave_3d] = pacote.metricas_3d;\n"
+        "  window.HAR_LIVE_CHAVE_3D = pacote.chave_3d;\n"
         "  dados.har_live = pacote.resumo;\n"
         "  window.HAR_LIVE_CHAVES = pacote.chaves;\n"
         "})();\n",

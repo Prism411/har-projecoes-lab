@@ -108,7 +108,7 @@ esses dados ao HAR.
 
 Não é seguro aplicar diretamente o scaler atual: o projeto carrega as 561
 features prontas da UCI, mas ainda não reproduz sua extração integral a partir de
-um sinal novo. A rota recomendada é criar um pipeline live compatível:
+um sinal novo. A rota recomendada é criar um **pipeline live compatível**:
 
 1. Usar as mesmas seis séries disponíveis no HAR e no navegador: aceleração
    linear X/Y/Z e giroscópio X/Y/Z.

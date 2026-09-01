@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffffff">
-  <title>Participante 31 — captura</title>
+  <title>Captura de movimento — HAR ao vivo</title>
   <link rel="stylesheet" href="/assets/shared.css">
   <link rel="stylesheet" href="/assets/mobile.css">
   <script src="/assets/mobile.js" defer></script>
+  <script src="/assets/mobile-etapas.js" defer></script>
 </head>
 <body>
   <main class="mobile-shell">
     <header class="mobile-header">
-      <p class="eyebrow">HAR / Participante 31</p>
+      <p class="eyebrow">SCC5836 · Visualização Computacional</p>
       <h1>Seu movimento entra no experimento.</h1>
-      <p>O Safari envia aceleração e rotação ao notebook. Nenhuma posição corporal é reconstruída.</p>
+      <p>O navegador envia aceleração e rotação ao notebook. Nenhuma posição corporal é reconstruída.</p>
     </header>
 
     <section class="connection-strip" aria-label="Estado da captura">
@@ -24,81 +25,109 @@
     </section>
 
     <div id="message" class="notice" role="status" aria-live="polite">
-      Abra esta página diretamente no Safari e mantenha a tela ligada.
+      Mantenha a tela ligada até o professor dar a partida.
     </div>
 
-    <section class="stage" aria-labelledby="permission-title">
-      <div class="stage-heading">
-        <span class="stage-number">1</span>
-        <div>
-          <h2 id="permission-title">Conectar sensores</h2>
-          <p>O iPhone pedirá acesso ao acelerômetro e ao giroscópio.</p>
-        </div>
-      </div>
-      <button id="permission-button" class="primary" type="button">Permitir sensores</button>
-    </section>
+    <nav class="passos" aria-label="Progresso da entrada">
+      <ol id="lista-passos">
+        <li data-passo="1"><span class="passo-num">1</span>Nome</li>
+        <li data-passo="2"><span class="passo-num">2</span>Sensores</li>
+        <li data-passo="3"><span class="passo-num">3</span>Pronto</li>
+      </ol>
+    </nav>
 
-    <section class="stage" aria-labelledby="placement-title">
-      <div class="stage-heading">
-        <span class="stage-number">2</span>
-        <div>
-          <h2 id="placement-title">Preparar o aparelho</h2>
-          <p>Retrato, tela para fora, preso firmemente na cintura.</p>
+    <div id="etapas">
+      <section class="stage" data-passo="1" aria-labelledby="participante-title">
+        <div class="stage-heading">
+          <span class="stage-number">1</span>
+          <div>
+            <h2 id="participante-title" tabindex="-1">Quem é você</h2>
+            <p>Seu nome aparece pro professor acompanhar a turma.</p>
+          </div>
         </div>
-      </div>
-      <div class="placement" aria-label="Orientação do iPhone na cintura">
-        <div class="waist-line"></div>
-        <div class="phone-shape"><span></span></div>
-        <div class="axis axis-x">X →</div>
-        <div class="axis axis-y">Y ↑</div>
-        <div class="axis axis-z">Z ⊙</div>
-      </div>
-      <button id="calibrate-button" class="secondary" type="button" disabled>Calibrar parado por 3 s</button>
-    </section>
+        <label class="campo-nome">
+          <span>Nome</span>
+          <input id="nome-input" type="text" inputmode="text" autocomplete="given-name"
+                 maxlength="24" placeholder="seu primeiro nome" aria-describedby="participante-ajuda">
+        </label>
+        <p id="participante-ajuda" class="ajuda">Só o primeiro nome. Seu número é atribuído sozinho ao conectar.</p>
+        <button id="passo1-continuar" class="primary" type="button">Continuar</button>
+      </section>
 
-    <section class="stage" aria-labelledby="record-title">
-      <div class="stage-heading">
-        <span class="stage-number">3</span>
-        <div>
-          <h2 id="record-title">Gravar atividade</h2>
-          <p>Escolha a ação instruída antes de começar.</p>
+      <section class="stage" data-passo="2" aria-labelledby="permission-title" hidden>
+        <div class="stage-heading">
+          <span class="stage-number">2</span>
+          <div>
+            <h2 id="permission-title" tabindex="-1">Conectar sensores</h2>
+            <p>O navegador vai pedir acesso ao acelerômetro e ao giroscópio.</p>
+          </div>
         </div>
-      </div>
-      <label class="field">
-        <span>Atividade</span>
-        <select id="activity-select">
-          <option value="WALKING">Andando</option>
-          <option value="WALKING_UPSTAIRS">Subindo escada</option>
-          <option value="WALKING_DOWNSTAIRS">Descendo escada</option>
-          <option value="SITTING">Sentado</option>
-          <option value="STANDING">Em pé</option>
-          <option value="LAYING">Deitado</option>
-        </select>
-      </label>
-      <label class="field">
-        <span>Duração</span>
-        <select id="duration-select">
-          <option value="10">10 segundos</option>
-          <option value="15">15 segundos</option>
-          <option value="20">20 segundos</option>
-        </select>
-      </label>
-      <div class="record-readout">
-        <strong id="timer">00:00.0</strong>
-        <span id="sample-rate">0,0 Hz observados</span>
-      </div>
-      <button id="record-button" class="primary" type="button" disabled>Iniciar gravação</button>
-      <button id="stop-button" type="button" hidden>Parar agora</button>
-    </section>
+        <button id="permission-button" class="primary" type="button">Permitir sensores</button>
+        <div class="tutorial-sensores">
+          <details open>
+            <summary>Não apareceu nada? iPhone (Safari)</summary>
+            <p class="ajuda">Toque em "Permitir" no aviso que o Safari mostra. Se não aparecer nada,
+              vá em <strong>Ajustes → Safari → Movimento e Orientação</strong>, ative o acesso e volte
+              pra tocar em "Permitir sensores" de novo.</p>
+          </details>
+          <details>
+            <summary>Não apareceu nada? Android (Chrome)</summary>
+            <p class="ajuda">O Chrome costuma liberar os sensores sem perguntar nada. Se os pontos
+              continuarem cinza, toque no cadeado ao lado do endereço → <strong>Permissões do site →
+              Sensores de movimento</strong> e ative.</p>
+          </details>
+        </div>
+      </section>
 
-    <section class="diagnostics" aria-labelledby="diagnostics-title">
-      <div>
-        <p class="eyebrow" id="diagnostics-title">Leitura atual</p>
-        <p>Aceleração (<span id="acceleration-source">aguardando</span>) <span id="acceleration-value" class="mono">—</span> m/s²</p>
-        <p>Rotação <span id="rotation-value" class="mono">—</span> °/s</p>
-      </div>
-      <button id="export-button" type="button" disabled>Exportar último CSV</button>
-    </section>
+      <section class="stage" data-passo="3" aria-labelledby="record-title" hidden>
+        <div class="stage-heading">
+          <span class="stage-number">3</span>
+          <div>
+            <h2 id="record-title" tabindex="-1">Pronto</h2>
+            <p>Aguarde o professor dar a partida — a atividade e a duração são escolhidas por ele.</p>
+          </div>
+        </div>
+        <div class="placement" aria-label="Orientação do aparelho na cintura">
+          <div class="waist-line"></div>
+          <div class="phone-shape"><span></span></div>
+          <div class="axis axis-x">X →</div>
+          <div class="axis axis-y">Y ↑</div>
+          <div class="axis axis-z">Z ⊙</div>
+        </div>
+        <p class="ajuda">Retrato, tela para fora, preso firmemente na cintura —
+          é assim que o experimento original foi gravado.</p>
+
+        <!-- Placeholder do @terminal: mesma estrutura/ids do #phone-model do dashboard.js
+             (elements["phone-model"].style.transform = rotateZ/rotateX/rotateY), só que
+             lendo a orientação local em vez de vir do relay. -->
+        <div class="phone-stage" aria-label="Seu aparelho em 3D, ao vivo">
+          <div id="phone-model" class="phone-model">
+            <div class="phone-screen"><span id="phone-model-numero">31</span></div>
+          </div>
+          <span class="world-axis world-x">X</span>
+          <span class="world-axis world-y">Y</span>
+          <span class="world-axis world-z">Z</span>
+        </div>
+
+        <div class="record-readout">
+          <strong id="timer">00:00.0</strong>
+          <span id="sample-rate">0,0 Hz observados</span>
+        </div>
+        <button id="stop-button" type="button" hidden>Parar agora</button>
+
+        <details class="campo-avancado">
+          <summary>Leitura bruta dos sensores</summary>
+          <div class="diagnostics">
+            <div>
+              <p class="eyebrow" id="diagnostics-title">Leitura atual</p>
+              <p>Aceleração (<span id="acceleration-source">aguardando</span>) <span id="acceleration-value" class="mono">—</span> m/s²</p>
+              <p>Rotação <span id="rotation-value" class="mono">—</span> °/s</p>
+            </div>
+            <button id="export-button" type="button" disabled>Exportar último CSV</button>
+          </div>
+        </details>
+      </section>
+    </div>
   </main>
 </body>
 </html>

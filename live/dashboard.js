@@ -11,7 +11,7 @@
     "mapa-canvas", "mapa-vizinhanca", "mapa-legenda", "mapa-situacao-rotulo", "mapa-situacao-detalhe"
   ].map(id => [id, document.getElementById(id)]));
 
-  // paleta okabe-ito: legivel tambem pras formas comuns de daltonismo
+  // Paleta Okabe-Ito: legível também para as formas comuns de daltonismo.
   const CORES_ATIVIDADE = {
     WALKING: "#0072B2",
     WALKING_UPSTAIRS: "#009E73",
@@ -40,7 +40,13 @@
     activity: "",
     mobileConnectedAt: 0,
     lastSampleAt: 0,
-    mapa: { referencia: null, projecao: null, limites: null }
+    mapa: {
+      referencia: null, projecao: null, limites: null,
+      tecnica: "umap",
+      // posição mais recente de cada participante, com um rastro curto para o
+      // movimento ficar legível no projetor
+      aoVivo: new Map()
+    }
   };
 
   function websocketUrl() {
@@ -115,6 +121,10 @@
     }
     if (message.type === "hello") {
       setMessage("iPhone identificado. Ative os sensores e faça a calibração.", "success");
+      return;
+    }
+    if (message.type === "projection-live") {
+      receberAoVivo(message);
       return;
     }
     if (message.type === "projection") {
@@ -290,7 +300,24 @@
     elements["live-label"].textContent = "Token ausente";
     setMessage("Use a URL completa exibida pelo servidor, com o token temporário.", "error");
   }
-  // ------------------------------------------------ har live: mapa de projecao
+  // ------------------------------------------------ HAR live: mapa de projeção
+
+  const CORES_TURMA = [
+    "#111111", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00",
+    "#56B4E9", "#8B4513", "#4B0082", "#2F4F4F"
+  ];
+
+  function corDoParticipante(numero) {
+    return CORES_TURMA[Number(numero) % CORES_TURMA.length];
+  }
+
+  function coordenadasDaReferencia() {
+    const r = state.mapa.referencia;
+    if (!r) return null;
+    if (state.mapa.tecnica === "pca") return r.coordenadas_pca || r.coordenadas;
+    if (state.mapa.tecnica === "tsne") return r.coordenadas_tsne || r.coordenadas;
+    return r.coordenadas;
+  }
 
   function limitesDe(coordenadas) {
     let minimoX = Infinity, maximoX = -Infinity, minimoY = Infinity, maximoY = -Infinity;
@@ -325,8 +352,10 @@
     contexto.fillStyle = escuro ? "#16181c" : "#fbfbfc";
     contexto.fillRect(0, 0, largura, altura);
 
-    const { coordenadas, atividades } = state.mapa.referencia;
+    const coordenadas = coordenadasDaReferencia();
+    const { atividades } = state.mapa.referencia;
     const limites = state.mapa.limites;
+    if (!coordenadas || !limites) return;
 
     // fundo: as 10.299 janelas do experimento original
     contexto.globalAlpha = escuro ? 0.5 : 0.42;
@@ -337,13 +366,59 @@
     }
     contexto.globalAlpha = 1;
 
+    // turma ao vivo: cada participante com rastro e etiqueta
+    state.mapa.aoVivo.forEach((pessoa, numero) => {
+      const rastro = pessoa.rastro;
+      if (!rastro.length) return;
+      const cor = corDoParticipante(numero);
+      const pontos = rastro.map(par => projetarNaTela(par[0], par[1], limites, largura, altura));
+
+      if (pontos.length > 1) {
+        contexto.strokeStyle = cor;
+        contexto.globalAlpha = 0.35;
+        contexto.lineWidth = 2;
+        contexto.beginPath();
+        pontos.forEach(([x, y], i) => i ? contexto.lineTo(x, y) : contexto.moveTo(x, y));
+        contexto.stroke();
+        contexto.globalAlpha = 1;
+      }
+
+      const [x, y] = pontos[pontos.length - 1];
+      contexto.beginPath();
+      contexto.arc(x, y, 11, 0, Math.PI * 2);
+      contexto.fillStyle = escuro ? "rgba(22,24,28,.92)" : "rgba(255,255,255,.92)";
+      contexto.fill();
+      contexto.beginPath();
+      contexto.arc(x, y, 8, 0, Math.PI * 2);
+      contexto.fillStyle = cor;
+      contexto.fill();
+      contexto.lineWidth = 2;
+      contexto.strokeStyle = escuro ? "#f1f3f4" : "#ffffff";
+      contexto.stroke();
+
+      contexto.font = "600 13px system-ui, sans-serif";
+      contexto.textAlign = "center";
+      const etiqueta = pessoa.nome || `P${numero}`;
+      const larg = contexto.measureText(etiqueta).width;
+      contexto.fillStyle = escuro ? "rgba(22,24,28,.9)" : "rgba(255,255,255,.9)";
+      contexto.fillRect(x - larg / 2 - 5, y - 30, larg + 10, 18);
+      contexto.fillStyle = escuro ? "#f1f3f4" : "#111";
+      contexto.fillText(etiqueta, x, y - 17);
+    });
+
     const projecao = state.mapa.projecao;
     if (!projecao) return;
 
-    const pontos = projecao.coordenadas.map(([x, y]) =>
+    const daTecnica = {
+      pca: projecao.coordenadas_pca,
+      tsne: projecao.coordenadas_tsne,
+      umap: projecao.coordenadas
+    }[state.mapa.tecnica] || projecao.coordenadas;
+    const pontos = (daTecnica || []).map(([x, y]) =>
       projetarNaTela(x, y, limites, largura, altura));
+    if (!pontos.length) return;
 
-    // trilha temporal entre as janelas da gravacao
+    // trilha temporal entre as janelas da gravação
     if (pontos.length > 1) {
       contexto.strokeStyle = escuro ? "rgba(255,255,255,.75)" : "rgba(17,17,17,.7)";
       contexto.lineWidth = 2;
@@ -371,7 +446,7 @@
       contexto.stroke();
     });
 
-    // rotulo VOCE na ultima janela
+    // rótulo VOCÊ na última janela
     const [ultimoX, ultimoY] = pontos[pontos.length - 1];
     contexto.font = "600 15px system-ui, sans-serif";
     contexto.textAlign = "center";
@@ -413,6 +488,45 @@
     "limítrofe": "Parte das janelas está na borda da distribuição do HAR.",
     fora: "Suas janelas caem fora da distribuição: mudança de domínio, não erro de atividade."
   };
+
+  const TAMANHO_DO_RASTRO = 12;
+
+  function receberAoVivo(mensagem) {
+    (mensagem.pontos || []).forEach(ponto => {
+      const numero = ponto.participante;
+      const atual = state.mapa.aoVivo.get(numero) || { nome: ponto.nome, rastro: [] };
+      atual.nome = ponto.nome || atual.nome;
+      const coordenada = ponto[state.mapa.tecnica] || ponto.umap;
+      if (coordenada) {
+        atual.rastro.push(coordenada);
+        if (atual.rastro.length > TAMANHO_DO_RASTRO) atual.rastro.shift();
+      }
+      // guarda as três, para a troca de técnica não perder o histórico
+      atual.ultimas = { pca: ponto.pca, tsne: ponto.tsne, umap: ponto.umap };
+      state.mapa.aoVivo.set(numero, atual);
+    });
+    const quantos = state.mapa.aoVivo.size;
+    elements["mapa-situacao-rotulo"].dataset.state = "calculando";
+    elements["mapa-situacao-rotulo"].textContent = "ao vivo";
+    elements["mapa-situacao-detalhe"].textContent =
+      `${quantos} participante(s) se movendo no espaço ${state.mapa.tecnica.toUpperCase()}.`;
+    desenharMapa();
+  }
+
+  function trocarTecnica(tecnica) {
+    state.mapa.tecnica = tecnica;
+    document.querySelectorAll(".mapa-tecnicas button").forEach(botao => {
+      botao.setAttribute("aria-pressed", String(botao.dataset.tecnica === tecnica));
+    });
+    // o rastro é de outro espaço: recomeça do ponto atual
+    state.mapa.aoVivo.forEach(pessoa => {
+      const ultima = pessoa.ultimas && pessoa.ultimas[tecnica];
+      pessoa.rastro = ultima ? [ultima] : [];
+    });
+    const coordenadas = coordenadasDaReferencia();
+    if (coordenadas) state.mapa.limites = limitesDe(coordenadas);
+    desenharMapa();
+  }
 
   function mostrarProjecao(mensagem) {
     state.mapa.projecao = mensagem;
@@ -467,13 +581,17 @@
       if (!resposta.ok) throw new Error("espaço não construído");
       const dados = await resposta.json();
       state.mapa.referencia = dados;
-      state.mapa.limites = limitesDe(dados.coordenadas);
+      state.mapa.limites = limitesDe(coordenadasDaReferencia() || dados.coordenadas);
       desenharMapa();
     } catch (erro) {
       elements["mapa-situacao-detalhe"].textContent =
         "Espaço HAR live ainda não construído neste computador (rode src/build_live_space.py).";
     }
   }
+
+  document.querySelectorAll(".mapa-tecnicas button").forEach(botao => {
+    botao.addEventListener("click", () => trocarTecnica(botao.dataset.tecnica));
+  });
 
   montarLegenda();
   carregarReferencia();

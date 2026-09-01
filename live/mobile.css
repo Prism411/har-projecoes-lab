@@ -202,3 +202,201 @@ body {
   .diagnostics { align-items: stretch; flex-direction: column; }
   .diagnostics button { width: 100%; }
 }
+
+/* O campo era estreito porque nasceu para um número de dois dígitos. Para o
+   nome ele precisa da largura da tela: rótulo em cima, campo embaixo. */
+.campo-nome {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.campo-nome span {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.campo-nome input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: left;
+  border: 1px solid currentColor;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+}
+
+.campo-nome input:disabled { opacity: .55; }
+
+.ajuda {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: .75;
+}
+
+/* -------------------------------------------------- progresso em etapas */
+
+.passos {
+  padding: 0.9rem 0 0;
+}
+
+.passos ol {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.passos li {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  gap: 0.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 3px solid var(--line);
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.passos li.passo-atual {
+  border-bottom-color: var(--ink);
+  color: var(--ink);
+}
+
+.passos li.passo-feito {
+  border-bottom-color: var(--ink);
+}
+
+.passo-num {
+  display: grid;
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: 0 0 1.35rem;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.7rem;
+}
+
+.passo-feito .passo-num::before {
+  content: "✓";
+}
+
+/* -------------------------------------------------- etapas individuais */
+
+.stage h2:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.campo-avancado {
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+
+.campo-avancado summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.campo-avancado .campo-participante {
+  margin-top: 0.6rem;
+}
+
+.tutorial-sensores {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tutorial-sensores details {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+
+.tutorial-sensores summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.tutorial-sensores .ajuda {
+  margin-top: 0.5rem;
+}
+
+/* -------------------------------------------------- modelo 3D do aparelho
+   (mesma estrutura de dashboard.css, pra @terminal reaproveitar o JS que
+   já lê orientação e escreve elements["phone-model"].style.transform) */
+
+.phone-stage {
+  position: relative;
+  display: grid;
+  min-height: 16rem;
+  place-items: center;
+  overflow: hidden;
+  perspective: 900px;
+  margin: 0.25rem 0 1rem;
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(var(--line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+  background-size: 2.2rem 2.2rem;
+}
+
+.phone-model {
+  position: relative;
+  width: 6rem;
+  height: 11.2rem;
+  border: 0.4rem solid var(--ink);
+  border-radius: 1.2rem;
+  background: var(--ink);
+  transform-style: preserve-3d;
+  transition: transform 80ms linear;
+}
+
+.phone-model::after {
+  position: absolute;
+  inset: -0.4rem;
+  border: 1px solid #777;
+  border-radius: 1.2rem;
+  content: "";
+  transform: translateZ(-0.5rem);
+}
+
+.phone-screen {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border-radius: 0.8rem;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.phone-screen span {
+  font: 900 2rem ui-monospace, monospace;
+}
+
+.world-axis {
+  position: absolute;
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  background: var(--surface);
+  font: 850 0.72rem ui-monospace, monospace;
+}
+
+.world-x { right: 0.8rem; bottom: 0.8rem; color: var(--blue-dark); }
+.world-y { right: 3rem; bottom: 0.8rem; color: var(--orange); }
+.world-z { right: 5.2rem; bottom: 0.8rem; color: var(--green); }

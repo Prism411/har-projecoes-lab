@@ -1,14 +1,14 @@
-"""ajusta o espaco de projecao compartilhado entre o HAR e o iphone.
+"""Ajusta o espaço de projeção compartilhado entre o HAR e o iPhone.
 
-diferente do laboratorio oficial, que projeta as 561 caracteristicas prontas da
-UCI, aqui o scaler, o PCA e o UMAP sao ajustados sobre as caracteristicas de
-`live_features`, extraidas dos sinais inerciais. e a unica forma de uma gravacao
-nova passar por `transform()` e cair no mesmo mapa -- sem reajustar nada e sem
-os rotulos participarem do ajuste.
+Diferente do laboratório oficial, que projeta as 561 características prontas da
+UCI, aqui o scaler, o PCA e o UMAP são ajustados sobre as características de
+`live_features`, extraídas dos sinais inerciais. Só assim uma gravação nova pode
+passar por `transform()` e cair no mesmo mapa — sem reajustar nada e sem que os
+rótulos participem do ajuste.
 
-saidas em `results/live-space/`:
-  modelos.joblib        scaler, pca e umap ajustados
-  referencia.json       coordenadas e rotulos das 10.299 janelas
+Saídas em `results/live-space/`:
+  modelos.joblib        scaler, PCA e UMAP ajustados
+  referencia.json       coordenadas e rótulos das 10.299 janelas
   metricas.json         separabilidade e metadados de reprodutibilidade
 """
 
@@ -71,9 +71,22 @@ def main() -> int:
     ).fit(reduzidas)
     coordenadas = umap.embedding_
 
+    print("ajustando o UMAP 3D…", flush=True)
+    # O laboratório tem uma vista tridimensional; sem um 3D no espaço comum, a
+    # turma ficaria de fora justamente da vista mais vistosa da apresentação.
+    umap3d = UMAP(
+        n_neighbors=VIZINHOS_UMAP,
+        min_dist=DISTANCIA_MINIMA_UMAP,
+        n_components=3,
+        metric="euclidean",
+        init="spectral",
+        random_state=SEMENTE,
+    ).fit(reduzidas)
+    coordenadas_3d = umap3d.embedding_
+
     print("ajustando o t-SNE…", flush=True)
-    # t-sne nao tem transform(): essas coordenadas sao so referencia, gravacao
-    # nova entra por interpolacao entre vizinhos mesmo
+    # O t-SNE não possui transform(): estas coordenadas servem de referência, e
+    # uma gravação nova só pode ser posicionada por interpolação entre vizinhos.
     tsne = TSNE(
         n_components=2,
         perplexity=PERPLEXIDADE_TSNE,
@@ -108,6 +121,7 @@ def main() -> int:
             "escalador": escalador,
             "pca": pca,
             "umap": umap,
+            "umap3d": umap3d,
             "tsne_referencia": tsne.astype(np.float32),
             "nomes_das_caracteristicas": nomes,
         },
@@ -119,6 +133,7 @@ def main() -> int:
         "coordenadas": np.round(coordenadas, 4).tolist(),
         "coordenadas_pca": np.round(coordenadas_pca, 4).tolist(),
         "coordenadas_tsne": np.round(tsne, 4).tolist(),
+        "coordenadas_3d": np.round(coordenadas_3d, 4).tolist(),
         "atividades": rotulos.tolist(),
         "participantes": dados.subjects.tolist(),
         "conjuntos": dados.splits.tolist(),

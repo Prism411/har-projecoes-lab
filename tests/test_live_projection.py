@@ -1,4 +1,4 @@
-"""testes do caminho iphone -> espaco compartilhado com o HAR."""
+"""Testes do caminho iPhone → espaço compartilhado com o HAR."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ def gravacao_sintetica(
     rotacao_deg: tuple[float, float, float] = (10.0, 20.0, 30.0),
     linear: bool = True,
 ) -> list[dict]:
-    """gravacao em unidades de navegador: m/s2 e graus por segundo."""
+    """Gravação em unidades de navegador: m/s² e graus por segundo."""
     total = int(segundos * hertz)
     amostras = []
     for indice in range(total):
@@ -126,14 +126,22 @@ def espaco():
 
 @pytest.fixture(scope="module")
 def har():
+    """O dataset da UCI tem 61 MB e não é versionado: quem clona baixa à parte.
+
+    Sem este aviso, um clone novo mostra dois erros de arquivo ausente como se
+    o código estivesse quebrado.
+    """
     from build_har_data import load_har
 
-    return load_har(RAIZ.parent / "datasets" / "uci-har-smartphones.zip")
+    arquivo = RAIZ.parent / "datasets" / "uci-har-smartphones.zip"
+    if not arquivo.exists():
+        pytest.skip(f"dataset ausente em {arquivo} — baixe da UCI para rodar estes testes")
+    return load_har(arquivo)
 
 
 class TestProjecao:
     def test_ajuste_nao_muda_com_dado_novo(self, espaco):
-        """os modelos so transformam: projetar duas vezes da o mesmo ponto."""
+        """Os modelos só transformam: projetar duas vezes dá o mesmo ponto."""
         series, _ = preparar_series(gravacao_sintetica(segundos=10.0))
         janelas = formar_janelas(series)
         centro_antes = espaco.umap._raw_data.mean(axis=0).copy()
@@ -143,9 +151,9 @@ class TestProjecao:
         assert np.allclose(centro_antes, espaco.umap._raw_data.mean(axis=0))
 
     def test_janela_do_har_disfarcada_de_iphone_volta_ao_lugar(self, espaco, har):
-        """ida e volta: um sinal real do HAR, convertido pras unidades de
-        navegador e reprocessado pelo caminho do iphone, precisa cair perto de
-        onde o proprio HAR coloca ele."""
+        """Ida e volta: um sinal real do HAR, convertido para unidades de
+        navegador e reprocessado pelo caminho do iPhone, precisa cair perto de
+        onde o próprio HAR o coloca."""
         indice = 100
         janela = har.inertial_signals[indice]
         amostras = [

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Participante 31 — monitor ao vivo</title>
+  <title>Monitor ao vivo — HAR</title>
   <link rel="stylesheet" href="/assets/shared.css">
   <link rel="stylesheet" href="/assets/dashboard.css">
   <script src="/assets/dashboard.js" defer></script>
@@ -88,6 +88,11 @@
           <p>Ao encerrar a gravação, cada janela sua é projetada no mesmo espaço das 10.299 janelas do experimento. Este mapa é <strong>separado</strong> da vista oficial de 561 características: aqui o scaler, o PCA e o UMAP foram ajustados sobre características extraídas igualmente dos dois lados, e a sua gravação passa por <code>transform()</code> — nada é reajustado com ela.</p>
         </div>
         <div class="mapa-situacao">
+          <div class="mapa-tecnicas" role="group" aria-label="Espaço mostrado no mapa">
+            <button type="button" data-tecnica="pca">PCA</button>
+            <button type="button" data-tecnica="tsne">t-SNE</button>
+            <button type="button" data-tecnica="umap" aria-pressed="true">UMAP</button>
+          </div>
           <span id="mapa-situacao-rotulo" class="situacao" data-state="vazio">sem gravação</span>
           <span id="mapa-situacao-detalhe">Grave no iPhone para aparecer aqui.</span>
         </div>

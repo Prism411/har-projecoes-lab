@@ -1,0 +1,204 @@
+/* Painel de comando da turma. Feito para ser usado de relance, durante a aula:
+   alvos grandes, estado sempre visível, nada que precise de leitura atenta. */
+
+body.admin {
+  margin: 0;
+  min-height: 100vh;
+  background: #0f1115;
+  color: #e8eaed;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.admin-topo {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 26px 30px 20px;
+  border-bottom: 1px solid #26292f;
+}
+
+.admin-topo h1 { margin: 4px 0 0; font-size: 26px; letter-spacing: -.02em; }
+.admin-topo .eyebrow { margin: 0; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #9aa0a6; }
+
+.admin-estado { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #c8ccd0; }
+.admin-estado .mono { font-variant-numeric: tabular-nums; color: #e8eaed; }
+
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #9aa0a6; display: inline-block; }
+.status-dot[data-state="ok"] { background: #34a853; }
+.status-dot[data-state="warn"] { background: #f9ab00; }
+.status-dot[data-state="error"] { background: #ea4335; }
+
+.admin-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 30px;
+  padding: 26px 30px 40px;
+  align-items: start;
+}
+
+.admin-corpo h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .1em; color: #9aa0a6; margin: 0 0 14px; }
+
+.lista-turma { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
+
+.lista-turma li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 15px;
+  background: #171a1f;
+  border: 1px solid #262a31;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.lista-turma li.vazio { grid-column: 1 / -1; justify-content: center; color: #9aa0a6; background: transparent; border-style: dashed; }
+/* O nome é o que se procura na sala; o número fica como referência discreta. */
+.lista-turma .nome { flex: 1; font-weight: 600; }
+.lista-turma .nome[data-anonimo="sim"] { font-weight: 400; color: #9aa0a6; font-style: italic; }
+.lista-turma .numero {
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: #80868b;
+  flex: 0 0 auto;
+}
+.lista-turma .marca { width: 9px; height: 9px; border-radius: 50%; background: #34a853; flex: 0 0 auto; }
+/* Ações da linha: discretas até o cartão receber o ponteiro, para a lista
+   continuar sendo uma lista e não uma barra de botões. No toque, onde não há
+   ponteiro, ficam sempre visíveis. */
+.lista-turma .acoes { display: flex; gap: 4px; flex: 0 0 auto; opacity: 0; transition: opacity .12s; }
+.lista-turma li:hover .acoes,
+.lista-turma li:focus-within .acoes { opacity: 1; }
+@media (hover: none) { .lista-turma .acoes { opacity: 1; } }
+
+.acao-turma {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  color: #c4c7c5;
+  background: #22262c;
+  border: 1px solid #32363d;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.acao-turma:hover { background: #2d323a; color: #ffffff; }
+.acao-turma:last-child:hover { background: #8c1d18; border-color: #8c1d18; }
+.acao-turma:focus-visible { outline: 2px solid #8ab4f8; outline-offset: 2px; }
+
+.lista-turma li[data-gravando="sim"] { border-color: #f9ab00; }
+.lista-turma li[data-gravando="sim"] .marca { background: #f9ab00; }
+
+.admin-controles { background: #171a1f; border: 1px solid #262a31; border-radius: 12px; padding: 20px; }
+
+.campo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; font-size: 14px; }
+.campo select {
+  flex: 1;
+  max-width: 190px;
+  padding: 9px 11px;
+  font-size: 15px;
+  border-radius: 8px;
+  border: 1px solid #3c4149;
+  background: #0f1115;
+  color: #e8eaed;
+}
+
+.botoes { display: grid; gap: 9px; margin: 18px 0 14px; }
+
+.botoes button, .admin-extra button {
+  padding: 14px 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.primario { background: #8ab4f8; color: #0f1115; }
+.primario:disabled { opacity: .45; cursor: not-allowed; }
+.secundario { background: transparent; color: #e8eaed; border-color: #3c4149; }
+.perigo { background: transparent; color: #f28b82; border-color: #5c2b28; }
+
+.notice { font-size: 13.5px; line-height: 1.5; color: #c8ccd0; background: #0f1115; border: 1px solid #262a31; border-radius: 9px; padding: 12px 14px; margin: 0; }
+.notice[data-tone="ok"] { border-color: #1f5133; color: #a8dfc0; }
+.notice[data-tone="erro"] { border-color: #5c2b28; color: #f28b82; }
+
+.admin-extra { margin-top: 18px; border-top: 1px solid #262a31; padding-top: 14px; }
+.admin-extra summary { cursor: pointer; font-size: 13px; color: #9aa0a6; }
+.ajuda { font-size: 12.5px; color: #9aa0a6; line-height: 1.5; }
+
+@media (max-width: 900px) {
+  .admin-corpo { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ------------------------------------------------------------------ QR code */
+
+.admin-qr { grid-column: 1 / -1; margin-bottom: 8px; }
+
+.qr-caixa {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+  background: #171a1f;
+  border: 1px solid #262a31;
+  border-radius: 12px;
+  padding: 18px;
+}
+
+#qr-imagem {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+  flex: 0 0 auto;
+}
+
+.qr-lado { display: flex; flex-direction: column; gap: 12px; min-width: 240px; flex: 1; }
+.qr-instrucao { margin: 0; font-size: 14px; line-height: 1.55; color: #c8ccd0; }
+.qr-link { margin: 0; font-size: 11px; color: #80868b; word-break: break-all; font-family: ui-monospace, Menlo, monospace; }
+
+/* Ampliado: o QR toma a tela para a turma inteira enxergar de longe. */
+body.qr-ampliado .qr-caixa {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  border-radius: 0;
+  justify-content: center;
+  background: #ffffff;
+}
+
+body.qr-ampliado #qr-imagem { width: min(78vh, 78vw); height: auto; }
+body.qr-ampliado .qr-lado { display: none; }
+
+/* Ampliado, o QR ocupa a tela inteira e o painel lateral some junto com o
+   botão que abriu. Sem uma saída visível, quem projeta fica preso: clicar
+   fora e Esc funcionam, mas nada na tela diz isso. */
+.qr-fechar { display: none; }
+body.qr-ampliado .qr-fechar {
+  /* flex, e não block: o glifo × não é centrado sozinho na caixa do botão
+     e ficava colado no topo do círculo. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  top: 16px;
+  right: 20px;
+  z-index: 51;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  font-size: 30px;
+  line-height: 1;
+  color: #1f2933;
+  background: #ffffff;
+  border: 2px solid #1f2933;
+  border-radius: 50%;
+  cursor: pointer;
+}
+body.qr-ampliado .qr-fechar:hover { background: #1f2933; color: #ffffff; }
+body.qr-ampliado .qr-fechar:focus-visible { outline: 3px solid #2f6fed; outline-offset: 3px; }

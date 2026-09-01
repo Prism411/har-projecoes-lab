@@ -5,8 +5,10 @@ reference/
 web/vendor/
 __pycache__/
 *.pyc
-.pytest_cache/
 
-# movimento corporal de quem gravou pelo iphone: dado pessoal, fica so na maquina
+# Movimento corporal de quem gravou pelo iPhone: dado pessoal, fica só na máquina.
 gravacoes-iphone.json
 gravacoes-iphone.parcial
+
+# Certificado do modo offline: a chave privada nunca entra no Git.
+cert/

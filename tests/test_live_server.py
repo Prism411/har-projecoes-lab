@@ -13,8 +13,10 @@ from starlette.websockets import WebSocketDisconnect
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
+import live_server  # noqa: E402
 from live_server import (  # noqa: E402
     ACCESS_TOKEN,
+    sanitizar_comando,
     MessageValidationError,
     SessionHub,
     app,
@@ -38,9 +40,13 @@ class AssetParser(HTMLParser):
 class FakeWebSocket:
     def __init__(self) -> None:
         self.messages: list[dict[str, Any]] = []
+        self.fechado = False
 
     async def send_json(self, message: dict[str, Any]) -> None:
         self.messages.append(message)
+
+    async def close(self, code: int = 1000, reason: str = "") -> None:
+        self.fechado = True
 
 
 class LiveServerTest(unittest.TestCase):
@@ -51,8 +57,12 @@ class LiveServerTest(unittest.TestCase):
         health = self.client.get("/api/health")
         self.assertEqual(health.status_code, 200)
         self.assertEqual(health.json()["service"], "har-live-relay")
-        self.assertIn("Participante 31", self.client.get("/mobile").text)
-        self.assertIn("Participante 31", self.client.get("/dashboard").text)
+        # O título identifica a página, não um número de participante: quem
+        # atribui número é o relay, e a aba dizia "Participante 31" para todo
+        # mundo — inclusive para quem conduz a aula.
+        self.assertIn("<title>Captura de movimento", self.client.get("/mobile").text)
+        self.assertIn("<title>Monitor ao vivo", self.client.get("/dashboard").text)
+        self.assertIn("<title>Comando da turma", self.client.get("/admin").text)
 
     def test_security_headers_are_present(self) -> None:
         response = self.client.get("/mobile")
@@ -93,6 +103,7 @@ class SessionHubTest(unittest.IsolatedAsyncioTestCase):
                     }
                 ],
             },
+            31,
         )
 
         self.assertEqual(len(dashboard.messages), 1)
@@ -100,6 +111,138 @@ class SessionHubTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(relayed["session"], "TESTE")
         self.assertEqual(relayed["samples"][0]["acceleration"], [0.1, 0.2, 0.3])
         self.assertIn("server_received_at", relayed)
+
+
+class SinalDeVidaTest(unittest.IsolatedAsyncioTestCase):
+    """O "Participante 31 que nunca saía da sala".
+
+    O navegador responde ao ping do WebSocket sozinho, mesmo com a aba
+    congelada em segundo plano ou com o túnel segurando a conexão de uma
+    página já fechada. Sem um batimento vindo do JavaScript, esse aparelho
+    ficava no roster para sempre e a turma via um fantasma na lista.
+    """
+
+    async def test_aparelho_calado_sai_da_sala(self) -> None:
+        import time as relogio
+
+        local_hub = SessionHub()
+        telefone = FakeWebSocket()
+        local_hub._mobiles["TESTE"].add(telefone)  # type: ignore[arg-type]
+        local_hub._participantes["TESTE"][telefone] = 31  # type: ignore[index]
+        local_hub._nomes["TESTE"][31] = "Vitoria"
+        local_hub._ultimo_sinal[telefone] = (  # type: ignore[index]
+            relogio.monotonic() - live_server.LIMITE_DE_SILENCIO - 1
+        )
+
+        expirados = await local_hub.expirar_silenciosos()
+
+        self.assertEqual(expirados, [telefone])
+        self.assertTrue(telefone.fechado)
+
+    async def test_quem_deu_sinal_recente_permanece(self) -> None:
+        """Um aluno parado esperando a contagem não pode ser expulso."""
+        import time as relogio
+
+        local_hub = SessionHub()
+        telefone = FakeWebSocket()
+        local_hub._mobiles["TESTE"].add(telefone)  # type: ignore[arg-type]
+        local_hub._participantes["TESTE"][telefone] = 31  # type: ignore[index]
+        local_hub._ultimo_sinal[telefone] = relogio.monotonic()  # type: ignore[index]
+
+        self.assertEqual(await local_hub.expirar_silenciosos(), [])
+        self.assertFalse(telefone.fechado)
+
+    async def test_batimento_renova_o_prazo(self) -> None:
+        import time as relogio
+
+        local_hub = SessionHub()
+        telefone = FakeWebSocket()
+        local_hub._ultimo_sinal[telefone] = (  # type: ignore[index]
+            relogio.monotonic() - live_server.LIMITE_DE_SILENCIO - 1
+        )
+        local_hub.anotar_sinal(telefone)  # type: ignore[arg-type]
+
+        self.assertEqual(await local_hub.expirar_silenciosos(), [])
+
+    def test_keepalive_e_vocabulario_valido(self) -> None:
+        """Se o relay recusar o batimento, três deles derrubam o aluno."""
+        self.assertEqual(
+            sanitize_mobile_message({"type": "keepalive"}), {"type": "keepalive"}
+        )
+
+
+class GestaoDaTurmaTest(unittest.IsolatedAsyncioTestCase):
+    """Quem conduz a aula precisa arrumar a lista sem apagar tudo de todos."""
+
+    def hub_com_gente(self) -> tuple[SessionHub, FakeWebSocket]:
+        local_hub = SessionHub()
+        telefone = FakeWebSocket()
+        local_hub._mobiles["AULA"].add(telefone)  # type: ignore[arg-type]
+        local_hub._participantes["AULA"][telefone] = 31  # type: ignore[index]
+        local_hub._nomes["AULA"][31] = "Jder"
+        local_hub._projetadas = [
+            {"participante": 31, "nome": "Jder", "coordenadas": [[0, 0]]},
+            {"participante": 32, "nome": "Ana", "coordenadas": [[1, 1]]},
+        ]
+        return local_hub, telefone
+
+    async def test_renomear_corrige_tambem_o_que_ja_foi_gravado(self) -> None:
+        """Só na sala não bastaria: a gravação guarda o nome de quando foi feita."""
+        local_hub, _ = self.hub_com_gente()
+        local_hub._gravar_no_disco = lambda: None  # type: ignore[method-assign]
+
+        resultado = await local_hub.gerenciar(
+            "AULA", {"acao": "renomear", "participante": 31, "nome": "Jader"}
+        )
+
+        self.assertEqual(resultado["gravacoes"], 1)
+        self.assertEqual(local_hub._nomes["AULA"][31], "Jader")
+        self.assertEqual(local_hub._projetadas[0]["nome"], "Jader")
+        self.assertEqual(local_hub._projetadas[1]["nome"], "Ana")  # não encosta em quem não é
+
+    async def test_remover_fecha_o_aparelho_daquela_pessoa(self) -> None:
+        local_hub, telefone = self.hub_com_gente()
+        outro = FakeWebSocket()
+        local_hub._participantes["AULA"][outro] = 32  # type: ignore[index]
+
+        resultado = await local_hub.gerenciar("AULA", {"acao": "remover", "participante": 31})
+
+        self.assertEqual(resultado["aparelhos"], 1)
+        self.assertTrue(telefone.fechado)
+        self.assertFalse(outro.fechado)
+
+    async def test_esquecer_apaga_so_as_gravacoes_de_um(self) -> None:
+        local_hub, _ = self.hub_com_gente()
+        local_hub._gravar_no_disco = lambda: None  # type: ignore[method-assign]
+
+        resultado = await local_hub.gerenciar("AULA", {"acao": "esquecer", "participante": 31})
+
+        self.assertEqual(resultado["gravacoes"], 1)
+        self.assertEqual([g["participante"] for g in local_hub._projetadas], [32])
+
+
+class VocabularioDeGestaoTest(unittest.TestCase):
+    def test_acoes_de_gestao_sao_aceitas(self) -> None:
+        for acao in ("remover", "esquecer"):
+            comando = sanitizar_comando({"acao": acao, "participante": 31})
+            self.assertEqual(comando["type"], "gestao")
+            self.assertEqual(comando["participante"], 31)
+
+    def test_renomear_passa_pelo_saneamento_de_nome(self) -> None:
+        comando = sanitizar_comando(
+            {"acao": "renomear", "participante": 31, "nome": "  Jader<script>  "}
+        )
+        self.assertEqual(comando["nome"], "Jaderscript")
+
+    def test_participante_fora_da_faixa_e_recusado(self) -> None:
+        for numero in (0, 30, 1000, "31", None):
+            with self.assertRaises(MessageValidationError):
+                sanitizar_comando({"acao": "remover", "participante": numero})
+
+    def test_gestao_nao_vira_mensagem_para_os_aparelhos(self) -> None:
+        """Um comando de gestão que vazasse para os celulares seria um bug feio."""
+        self.assertEqual(sanitizar_comando({"acao": "remover", "participante": 31})["type"], "gestao")
+        self.assertEqual(sanitizar_comando({"acao": "parar"})["type"], "comando")
 
 
 class MessageValidationTest(unittest.TestCase):

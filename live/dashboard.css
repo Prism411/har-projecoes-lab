@@ -299,7 +299,7 @@
   .window-progress { grid-template-columns: 1fr; }
 }
 
-/* ---------------------------------------------- har live: mapa de projecao */
+/* ---------------------------------------------- HAR live: mapa de projeção */
 
 .mapa-section {
   border-top: 1px solid var(--linha, #e2e4e8);
@@ -418,3 +418,28 @@
 @media (prefers-color-scheme: dark) {
   .mapa-tela { background: #16181c; }
 }
+
+.mapa-tecnicas { display: flex; gap: 4px; margin-bottom: 4px; }
+
+.mapa-tecnicas button {
+  padding: 5px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--linha, #d2d5da);
+  background: transparent;
+  color: inherit;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.mapa-tecnicas button[aria-pressed="true"] {
+  background: #121212;
+  color: #ffffff;
+  border-color: #121212;
+}
+
+.mapa-turma { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.mapa-turma li { display: flex; align-items: center; gap: 7px; padding: 3px 0; }
+.mapa-turma .ponto { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.mapa-turma .quem { flex: 1; }
+.mapa-turma .qtd { font-variant-numeric: tabular-nums; color: var(--texto-suave, #5f6368); }

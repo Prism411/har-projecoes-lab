@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f1115">
+  <title>Comando da turma — HAR ao vivo</title>
+  <link rel="stylesheet" href="/assets/shared.css">
+  <link rel="stylesheet" href="/assets/admin.css">
+  <script src="/assets/admin.js" defer></script>
+</head>
+<body class="admin">
+  <header class="admin-topo">
+    <div>
+      <p class="eyebrow">HAR / comando da turma</p>
+      <h1>Quem está na sala</h1>
+    </div>
+    <div class="admin-estado">
+      <span id="conexao-dot" class="status-dot"></span>
+      <span id="conexao-label">Conectando</span>
+      <strong id="contagem-turma" class="mono">0 aparelhos</strong>
+    </div>
+  </header>
+
+  <main class="admin-corpo">
+    <section class="admin-qr" aria-labelledby="qr-titulo">
+      <h2 id="qr-titulo">Entrada da turma</h2>
+      <div class="qr-caixa">
+        <button id="btn-reduzir" type="button" class="qr-fechar"
+                aria-label="Fechar a tela ampliada">×</button>
+        <img id="qr-imagem" alt="QR code do link de captura" width="260" height="260">
+        <div class="qr-lado">
+          <p class="qr-instrucao">Aponte a câmera do celular.</p>
+          <button id="btn-ampliar" type="button" class="secundario">Ampliar para a sala</button>
+          <p id="qr-link" class="qr-link"></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="admin-turma" aria-labelledby="turma-titulo">
+      <h2 id="turma-titulo">Turma</h2>
+      <ul id="lista-turma" class="lista-turma">
+        <li class="vazio">Ninguém conectado ainda. Passe o QR para a turma.</li>
+      </ul>
+    </section>
+
+    <section class="admin-controles" aria-labelledby="controles-titulo">
+      <h2 id="controles-titulo">Partida</h2>
+
+      <label class="campo">
+        <span>Atividade</span>
+        <select id="atividade">
+          <option value="WALKING">Andar</option>
+          <option value="WALKING_UPSTAIRS">Subir escada</option>
+          <option value="WALKING_DOWNSTAIRS">Descer escada</option>
+          <option value="SITTING">Sentar</option>
+          <option value="STANDING">Ficar em pé</option>
+          <option value="LAYING">Deitar</option>
+        </select>
+      </label>
+
+      <label class="campo">
+        <span>Duração</span>
+        <select id="duracao">
+          <option value="10000">10 segundos</option>
+          <option value="15000">15 segundos</option>
+          <option value="20000">20 segundos</option>
+          <option value="30000">30 segundos</option>
+        </select>
+      </label>
+
+      <label class="campo">
+        <span>Contagem</span>
+        <select id="contagem">
+          <option value="3000">3 segundos</option>
+          <option value="5000" selected>5 segundos</option>
+          <option value="10000">10 segundos</option>
+        </select>
+      </label>
+
+      <div class="botoes">
+        <button id="btn-preparar" type="button" class="secundario">Avisar a turma</button>
+        <button id="btn-iniciar" type="button" class="primario">Dar a partida</button>
+        <button id="btn-parar" type="button" class="perigo">Parar todos</button>
+      </div>
+
+      <p id="admin-mensagem" class="notice" role="status" aria-live="polite">
+        Conecte a turma, escolha a atividade e dê a partida. Todos começam juntos.
+      </p>
+
+      <details class="admin-extra">
+        <summary>Fim da aula</summary>
+        <p class="ajuda">As gravações contêm movimento do corpo de quem participou.
+          Apague quando terminar.</p>
+        <button id="btn-apagar" type="button" class="perigo">Apagar todas as gravações</button>
+      </details>
+    </section>
+  </main>
+</body>
+</html>

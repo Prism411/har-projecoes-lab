@@ -1,16 +1,16 @@
-"""caracteristicas comuns ao HAR e ao iphone.
+"""Características comuns ao HAR e ao iPhone.
 
-o laboratorio oficial usa as 561 caracteristicas prontas da UCI, que nao da pra
-reproduzir a partir de um sinal novo. esse modulo define um espaco menor e
-totalmente reproduzivel, extraido com o MESMO codigo nos dois lados:
+O laboratório oficial usa as 561 características prontas da UCI, que não podem
+ser reproduzidas a partir de um sinal novo. Este módulo define um espaço menor e
+totalmente reprodutível, extraído com o MESMO código nos dois lados:
 
 - do HAR, sobre as janelas de `Inertial Signals` (body_acc em g, body_gyro em
   rad/s, 128 leituras a 50 Hz);
-- do iphone, sobre janelas construidas com as mesmas unidades e taxa.
+- do iPhone, sobre janelas construídas com as mesmas unidades e taxa.
 
-a comparabilidade depende dos dois lados passarem por essa funcao e mais nada.
-qualquer caracteristica que dependa de detalhe do pre-processamento da UCI
-fica de fora de proposito.
+A comparabilidade depende de os dois lados passarem por esta função e por mais
+nada. Qualquer característica que dependa de detalhes do pré-processamento da
+UCI fica de fora de propósito.
 """
 
 from __future__ import annotations
@@ -44,7 +44,7 @@ def _momentos(valores: np.ndarray, ordem: int) -> np.ndarray:
 
 
 def _tempo(serie: np.ndarray, sufixo: str) -> tuple[np.ndarray, list[str]]:
-    """dez descritores temporais por serie. `serie` tem forma (n, amostras)."""
+    """Dez descritores temporais por série. `serie` tem forma (n, amostras)."""
     ordenada = np.sort(serie, axis=-1)
     quartil1 = np.percentile(serie, 25, axis=-1)
     quartil3 = np.percentile(serie, 75, axis=-1)
@@ -75,7 +75,7 @@ def _tempo(serie: np.ndarray, sufixo: str) -> tuple[np.ndarray, list[str]]:
 
 
 def _frequencia(serie: np.ndarray, sufixo: str) -> tuple[np.ndarray, list[str]]:
-    """cinco descritores espectrais por serie, via fft real."""
+    """Cinco descritores espectrais por série, via FFT real."""
     janela = np.hanning(serie.shape[-1])
     espectro = np.abs(np.fft.rfft(serie * janela, axis=-1))
     frequencias = np.fft.rfftfreq(serie.shape[-1], d=1.0 / TAXA_HZ)
@@ -110,16 +110,16 @@ def _frequencia(serie: np.ndarray, sufixo: str) -> tuple[np.ndarray, list[str]]:
 
 
 def nomes_das_caracteristicas() -> list[str]:
-    """nomes na mesma ordem que `extrair` produz."""
+    """Nomes na mesma ordem produzida por `extrair`."""
     _, nomes = extrair(np.zeros((1, 6, TAMANHO_JANELA), dtype=np.float64))
     return nomes
 
 
 def extrair(janelas: np.ndarray) -> tuple[np.ndarray, list[str]]:
-    """converte janelas (n, 6, 128) em matriz de caracteristicas.
+    """Converte janelas (n, 6, 128) em uma matriz de características.
 
-    ordem dos seis canais e body_acc x/y/z (g) e body_gyro x/y/z (rad/s),
-    igual ao `Inertial Signals` da UCI.
+    A ordem dos seis canais é body_acc x/y/z (g) e body_gyro x/y/z (rad/s),
+    idêntica à do `Inertial Signals` da UCI.
     """
     janelas = np.asarray(janelas, dtype=np.float64)
     if janelas.ndim != 3 or janelas.shape[1] != 6:
@@ -128,7 +128,7 @@ def extrair(janelas: np.ndarray) -> tuple[np.ndarray, list[str]]:
     blocos: list[np.ndarray] = []
     nomes: list[str] = []
 
-    # seis eixos + magnitude de cada corpo = oito series por janela
+    # seis eixos, mais a magnitude de cada corpo: oito séries por janela
     series: list[tuple[np.ndarray, str]] = []
     for indice_corpo, corpo in enumerate(CORPOS):
         base = indice_corpo * 3
@@ -143,7 +143,7 @@ def extrair(janelas: np.ndarray) -> tuple[np.ndarray, list[str]]:
             blocos.append(valores)
             nomes.extend(rotulos)
 
-    # correlacao entre eixos de cada corpo: postura e plano de movimento
+    # correlação entre eixos de cada corpo: postura e plano de movimento
     for indice_corpo, corpo in enumerate(CORPOS):
         base = indice_corpo * 3
         for primeiro, segundo in ((0, 1), (0, 2), (1, 2)):
@@ -161,7 +161,7 @@ def extrair(janelas: np.ndarray) -> tuple[np.ndarray, list[str]]:
             blocos.append(correlacao[:, None])
             nomes.append(f"correlacao_{corpo}_{EIXOS[primeiro]}{EIXOS[segundo]}")
 
-    # area de magnitude do sinal: esforco somado dos tres eixos
+    # área de magnitude do sinal: esforço somado dos três eixos
     for indice_corpo, corpo in enumerate(CORPOS):
         base = indice_corpo * 3
         area = np.abs(janelas[:, base : base + 3, :]).sum(axis=(1, 2)) / janelas.shape[-1]

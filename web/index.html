@@ -57,8 +57,9 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 
   <header style="flex:0 0 auto;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:10px 20px 8px;border-bottom:2px solid #121212;background:#FFFFFF">
     <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
-      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5F5F59;font-weight:700">Laboratório de projeções · redução de dimensionalidade</div>
+      <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#5F5F59;font-weight:700">SCC5836 · Visualização Computacional</div>
       <h1 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-.015em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dsNome }}</h1>
+      <div style="font-size:11.5px;color:#3F3F3B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><b>Jader Louis de Souza Gonçalves</b> · Rhonner Politzer Ramírez Flores · Caio César de Sousa Oliveira · Wanner Martins de Menezes</div>
     </div>
     <div style="display:flex;align-items:center;gap:14px;flex:0 0 auto">
       <span style="font-size:12px;color:#5F5F59;font-variant-numeric:tabular-nums">{{ dsResumo }}</span>
@@ -124,7 +125,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
   <sc-if value="{{ ehLab }}" hint-placeholder-val="{{ true }}">
     <div aria-label="Filtros do dataset" style="flex:0 0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:7px 16px;padding:7px 20px;border-bottom:1px solid #D8D8D3;background:#FFFFFF">
       <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#5F5F59;font-weight:700">Filtrar amostras</span>
-      <div role="group" aria-labelledby="faixa-participantes-label" style="display:flex;align-items:center;gap:10px;min-width:390px">
+      <div role="group" aria-labelledby="faixa-participantes-label" style="display:{{ displayFaixa }};align-items:center;gap:10px;min-width:390px">
         <span id="faixa-participantes-label" style="font-size:12.5px;font-weight:600">Participantes</span>
         <div class="dual-range">
           <div class="dual-range-track" aria-hidden="true"></div>
@@ -141,6 +142,29 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
           </sc-for>
         </select>
       </label>
+      <div sc-if="{{ temAlunos }}" style="position:relative">
+        <button type="button" onClick="{{ quemBtn.on }}" aria-expanded="{{ quemAberto }}" aria-haspopup="true" style="border:1px solid #121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ quemBtn.bg }};color:{{ quemBtn.fg }}">{{ quemBtn.label }}</button>
+        <sc-if value="{{ quemAberto }}" hint-placeholder-val="{{ false }}">
+          <div role="dialog" aria-label="Escolher participantes" style="position:absolute;top:calc(100% + 4px);left:0;z-index:20;width:260px;max-height:320px;display:flex;flex-direction:column;background:#FFFFFF;border:1px solid #121212;border-radius:2px;box-shadow:0 4px 16px rgba(0,0,0,.18)">
+            <div style="padding:8px;border-bottom:1px solid #D8D8D3">
+              <input type="text" value="{{ quemBuscaValor }}" onInput="{{ onQuemBusca }}" placeholder="Buscar por nome ou número" aria-label="Buscar participante por nome ou número" style="width:100%;box-sizing:border-box;border:1px solid #121212;border-radius:2px;padding:6px 8px;font-size:12.5px">
+            </div>
+            <div style="overflow:auto;padding:4px 0">
+              <sc-for list="{{ quemOpcoesFiltradas }}" as="o" hint-placeholder-count="3">
+                <label style="display:flex;align-items:center;gap:8px;padding:6px 10px;font-size:12.5px;cursor:pointer">
+                  <input type="checkbox" checked="{{ o.marcado }}" onChange="{{ o.onToggle }}">
+                  {{ o.label }}
+                </label>
+              </sc-for>
+              <div sc-if="{{ quemSemResultado }}" hint-placeholder-val="{{ false }}" style="padding:8px 10px;font-size:12px;color:#5F5F59">Nenhum participante encontrado.</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:8px;padding:8px;border-top:1px solid #D8D8D3">
+              <button type="button" onClick="{{ onQuemLimpar }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border-radius:2px">Limpar seleção</button>
+              <button type="button" onClick="{{ quemBtn.on }}" style="border:1px solid #121212;background:#121212;color:#FFFFFF;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;border-radius:2px">Fechar</button>
+            </div>
+          </div>
+        </sc-if>
+      </div>
       <span role="status" style="font-size:12.5px;color:#3F3F3B;font-variant-numeric:tabular-nums">{{ filtroResumo }}</span>
       <button type="button" onClick="{{ onLimparFiltros }}" disabled="{{ filtrosLimpos }}" style="border:1px solid #121212;background:#FFFFFF;color:#121212;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;border-radius:2px;opacity:{{ opLimparFiltros }}">Limpar filtros</button>
       <span style="font-size:12px;color:#5F5F59">Atividades: clique nos itens da legenda.</span>
@@ -149,6 +173,14 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 
   <sc-if value="{{ avancadoAberto }}" hint-placeholder-val="{{ false }}">
     <div style="flex:0 0 auto;display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;padding:10px 20px;border-bottom:1px solid #D8D8D3;background:#FFFFFF">
+      <div sc-if="{{ temEspacoComum }}" style="display:flex;align-items:center;gap:8px;font-size:12.5px" title="{{ espacoNota }}">
+        Espaço de características
+        <div role="group" aria-label="Espaço de características" style="display:flex;gap:4px">
+          <sc-for list="{{ segEspaco }}" as="o" hint-placeholder-count="2">
+            <button type="button" onClick="{{ o.on }}" aria-pressed="{{ o.pressed }}" style="border:1px solid #121212;padding:4px 9px;font-size:12px;font-weight:600;cursor:pointer;border-radius:2px;background:{{ o.bg }};color:{{ o.fg }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+      </div>
       <label style="display:flex;align-items:center;gap:8px;font-size:12.5px">Tamanho do ponto
         <input type="range" min="5" max="18" step="1" value="{{ pontoValor }}" onChange="{{ onPonto }}" style="width:120px">
         <b style="font-variant-numeric:tabular-nums">{{ pontoValor }}</b>
@@ -236,8 +268,6 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
           <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
             <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
               <h2 style="margin:0;font-size:18px;font-weight:700;letter-spacing:-.015em">UMAP 3D</h2>
-              <span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border:1px solid #121212;padding:2px 5px;border-radius:2px">pré-calculado</span>
-              <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0072B2">WebGL</span>
             </div>
             <div style="font-size:11.5px;color:#3F3F3B;font-variant-numeric:tabular-nums">{{ umap3dParams }}</div>
             <div style="display:flex;gap:13px;flex-wrap:wrap;font-size:12px;font-variant-numeric:tabular-nums">
@@ -263,8 +293,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
             <div style="flex:0 0 auto;padding:8px 11px;border-bottom:1px solid #E4E4E0;background:#FAFAF8;display:flex;flex-direction:column;gap:4px">
               <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                 <span style="font-size:17px;font-weight:700;letter-spacing:-.01em">{{ p.tecnica }}</span>
-                <span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;border:1px solid #121212;padding:2px 5px;border-radius:2px">pré-calculado</span>
-                <select ref="{{ p.selRef }}" value="{{ p.cfgKey }}" onChange="{{ p.onCfg }}" disabled="{{ p.selDisabled }}" aria-label="{{ p.selLabel }}" style="margin-left:auto;max-width:100%;border:1px solid #121212;background:#FFFFFF;color:#121212;font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:4px 5px;border-radius:2px">
+                <select ref="{{ p.selRef }}" value="{{ p.cfgKey }}" onChange="{{ p.onCfg }}" disabled="{{ p.selDisabled }}" aria-label="{{ p.selLabel }}" style="display:{{ p.displaySeletor }};margin-left:auto;max-width:100%;border:1px solid #121212;background:#FFFFFF;color:#121212;font-size:11.5px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:4px 5px;border-radius:2px">
                   <sc-for list="{{ p.opcoes }}" as="o" hint-placeholder-count="2">
                     <option value="{{ o.v }}" disabled="{{ o.disabled }}">{{ o.label }}</option>
                   </sc-for>
@@ -482,7 +511,7 @@ button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid 
 <script type="text/x-dc" data-dc-script data-props="{&quot;modoInicial&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;laboratorio&quot;,&quot;apresentacao&quot;],&quot;default&quot;:&quot;laboratorio&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Início&quot;},&quot;tamanhoPonto&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:5,&quot;max&quot;:18,&quot;step&quot;:1,&quot;default&quot;:9,&quot;unit&quot;:&quot;px&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Gráfico&quot;},&quot;atenuacao&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;min&quot;:0.05,&quot;max&quot;:0.6,&quot;step&quot;:0.01,&quot;default&quot;:0.16,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Gráfico&quot;},&quot;mostrarLigacoes&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Lente de vizinhança&quot;}}">
 class Component extends DCLogic {
   state = {
-    pronto: false, erro: null, modo: null, cena: 0, vistaLab: 'comparar',
+    pronto: false, erro: null, modo: null, cena: 0, vistaLab: 'comparar', filtroQuemSel: [], filtroQuemBusca: '', quemAberto: false, espaco: 'comum',
     cfg: {}, corPor: 'label', cvd: 'padrao', sel: [], anchor: null,
     lente: null, ligacoes: null, tabela: false, ocultas: [], avancado: false,
     morphOn: false, morphI: 0, morphMs: 500, cmpA: null, cmpB: null,
@@ -566,9 +595,10 @@ class Component extends DCLogic {
     setTimeout(this.aguardar, 60);
   };
 
-  iniciar(D) {
-    this.D = D;
-    this.umap3dKey = (D.protocolo && D.protocolo.umap_3d && D.protocolo.umap_3d.chave) || 'umap3d/equilibrado/seed-42';
+  // Índices derivados das amostras. Fica separado porque a turma pode entrar
+  // depois: uma gravação que chega no meio da aula precisa aparecer sem
+  // recarregar a página.
+  indexar(D) {
     this.byId = {}; this.idxOf = {}; this.byClass = {}; this.classById = {};
     (D.dataset.classes || []).forEach(c => { this.classById[c.id] = c; this.byClass[c.id] = []; });
     (D.amostras || []).forEach((s, i) => {
@@ -576,6 +606,63 @@ class Component extends DCLogic {
       if (!this.byClass[s.label]) this.byClass[s.label] = [];
       this.byClass[s.label].push(i);
     });
+    this.maxSujeito = 1;
+    (D.amostras || []).forEach(s => {
+      const v = s.meta && s.meta.subject;
+      if (typeof v === 'number' && v > this.maxSujeito) this.maxSujeito = v;
+    });
+    this.splits = Array.from(new Set((D.amostras || []).map(s => s.meta && s.meta.split).filter(Boolean))).sort();
+  }
+
+  // Chamada de fora quando o relay entrega uma gravação nova, durante a aula.
+  absorverGravacoes = () => {
+    if (!this.D) return;
+    this.indexar(this.D);
+    this.profileCache = null;
+    // A pessoa selecionada pode ter acabado de sumir (gravação apagada) ou
+    // trocado de nome no painel: a seleção não pode sobreviver a isso.
+    if (this.revisarSelecao()) return;
+    this.setState({ absorvidas: (this.state.absorvidas || 0) + 1 });
+  };
+
+  // Entrou ou saiu gente da sala. Nenhuma amostra mudou, então não há o que
+  // reindexar: basta redesenhar para a lista de pessoas acompanhar o relay.
+  //
+  // Duas defesas antes de redesenhar, porque redesenhar custa ~250 ms com o
+  // dataset inteiro na tela. A primeira é ignorar status que não muda quem
+  // está na sala. A segunda é o limite de taxa: cada aluno que chega gera dois
+  // status (a conexão e o nome), então uma turma inteira escaneando o QR ao
+  // mesmo tempo geraria dezenas de redesenhos seguidos e travaria o projetor.
+  // Uma pessoa chegando sozinha continua aparecendo na hora — o limite só
+  // age quando o anterior acabou de acontecer.
+  atualizarPresenca = () => {
+    const assinatura = (window.HAR_LIVE_PRESENTES || [])
+      .map(p => p.nome).sort().join('|');
+    if (assinatura === this.presencaAssinatura) return;
+    this.presencaAssinatura = assinatura;
+    const desde = Date.now() - (this.presencaUltima || 0);
+    if (desde >= 400) { this.pintarPresenca(); return; }
+    if (this.presencaTimer) return;
+    this.presencaTimer = window.setTimeout(this.pintarPresenca, 400 - desde);
+  };
+
+  pintarPresenca = () => {
+    window.clearTimeout(this.presencaTimer);
+    this.presencaTimer = null;
+    this.presencaUltima = Date.now();
+    if (this.revisarSelecao()) return;
+    this.setState({ presenca: (this.state.presenca || 0) + 1 });
+  };
+
+  iniciar(D) {
+    this.D = D;
+    // o script das gravações usa isto para avisar que chegou gente nova
+    window.HAR_LIVE_ABSORVER = this.absorverGravacoes;
+    // ...e isto para avisar quem está conectado agora, mesmo sem ter gravado
+    window.HAR_LIVE_PRESENCA = this.atualizarPresenca;
+    this.umap3dKeyOficial = (D.protocolo && D.protocolo.umap_3d && D.protocolo.umap_3d.chave) || 'umap3d/equilibrado/seed-42';
+    Object.defineProperty(this, 'umap3dKey', { get: () => this.chaves3dDoEspaco() });
+    this.indexar(D);
     const vistos = {}; this.cfgKeys = [];
     (D.amostras || []).forEach(s => Object.keys(s.projecoes || {}).forEach(k => { if (!vistos[k]) { vistos[k] = 1; this.cfgKeys.push(k); } }));
     this.porTech = {}; this.techs = [];
@@ -626,9 +713,15 @@ class Component extends DCLogic {
     const inicio = sujeitoMin == null ? this.filtroSujeitoMinAtual() : Number(sujeitoMin);
     const fim = sujeitoMax == null ? this.filtroSujeitoMaxAtual() : Number(sujeitoMax);
     const splitAtivo = split == null ? this.filtroSplitAtual() : split;
+    if (splitAtivo === 'dataset' && this.ehDaTurma(s)) return false;
+    if (splitAtivo === 'live' && !this.ehDaTurma(s)) return false;
+    if (!this.passaQuem(s)) return false;
+    // Marcar alguém específico em "Quem" tem precedência sobre a faixa: senão,
+    // pedir uma pessoa da turma com o slider em 1–30 devolveria tela vazia,
+    // porque a turma começa no participante 31.
+    if (this.filtroQuemSelAtual().length) return true;
     const sujeito = Number(s.meta && s.meta.subject);
     if (sujeito < inicio || sujeito > fim) return false;
-    if (splitAtivo !== 'todos' && (!s.meta || s.meta.split !== splitAtivo)) return false;
     return true;
   }
 
@@ -638,12 +731,139 @@ class Component extends DCLogic {
     return classesOcultas.indexOf(s.label) < 0;
   }
 
-  filtroKey() { return this.filtroSujeitoMinAtual() + '-' + this.filtroSujeitoMaxAtual() + '|' + this.filtroSplitAtual() + '|' + this.state.ocultas.slice().sort().join(','); }
+  filtroKey() { return this.filtroSujeitoMinAtual() + '-' + this.filtroSujeitoMaxAtual() + '|' + this.filtroSplitAtual() + '|' + this.filtroQuemSelAtual().slice().sort().join(',') + '|' + this.state.ocultas.slice().sort().join(','); }
+
+  // ------------------------------------------------------------------- de quem
+  //
+  // "Conjunto" já separa dataset (UCI) de LIVE (turma); "Quem" só restringe
+  // ainda mais para pessoas específicas de qualquer um dos dois, marcadas por
+  // checkbox — nenhuma delas marcada significa nenhuma restrição extra.
+  filtroQuemSelAtual() { return this.state.filtroQuemSel || []; }
+
+  ehDaTurma(s) { return !!(s && s.meta && s.meta.nome); }
+
+  // Uma pessoa da turma existe no filtro por dois motivos independentes: ou já
+  // tem janelas no mapa, ou está conectada agora. Quem acabou de entrar aparece
+  // com zero janelas, e o rótulo diz isso — o filtro reflete a sala, não só o
+  // que já foi gravado.
+  alunosDisponiveis() {
+    const vistos = new Map();
+    (this.D.amostras || []).forEach(s => {
+      const nome = s.meta && s.meta.nome;
+      if (nome) vistos.set(nome, (vistos.get(nome) || 0) + 1);
+    });
+    const naSala = new Set();
+    (window.HAR_LIVE_PRESENTES || []).forEach(pessoa => {
+      const nome = pessoa && pessoa.nome;
+      if (!nome) return;
+      naSala.add(nome);
+      if (!vistos.has(nome)) vistos.set(nome, 0);
+    });
+    return Array.from(vistos.entries())
+      .sort((a, b) => a[0].localeCompare(b[0], 'pt-BR'))
+      .map(([nome, n]) => ({ nome: nome, n: n, naSala: naSala.has(nome) }));
+  }
+
+  participantesDoExperimento() {
+    const vistos = new Set();
+    (this.D.amostras || []).forEach(s => {
+      if (!this.ehDaTurma(s) && s.meta && s.meta.subject != null) vistos.add(Number(s.meta.subject));
+    });
+    return Array.from(vistos).sort((a, b) => a - b);
+  }
+
+  passaQuem(s) {
+    const sel = this.filtroQuemSelAtual();
+    if (!sel.length) return true;
+    if (this.ehDaTurma(s)) return sel.indexOf('nome:' + s.meta.nome) >= 0;
+    return sel.indexOf('participante:' + (s.meta && s.meta.subject)) >= 0;
+  }
+
+  // A lista de pessoas segue o conjunto escolhido: escolher "LIVE" e ainda ver
+  // os trinta do experimento na lista é ruído, porque marcar qualquer um deles
+  // não mostraria nada. Conjunto primeiro, pessoas dentro dele depois.
+  /* Uma seleção só pode conter gente que existe agora.
+
+     A lista de pessoas muda por fora da seleção: alguém é renomeado no painel,
+     tem as gravações apagadas, entra ou sai da sala, ou o conjunto passa a ser
+     outro. Sem podar, a seleção continua apontando para um nome que não existe
+     mais — e o resultado é o pior tipo de falha: a tela esvazia, o rótulo
+     anuncia "somente Fulano", e nada na interface explica o que houve.
+
+     Devolve o MESMO array quando nada mudou, para não disparar redesenho à
+     toa. */
+  podarQuem(conjuntoPedido) {
+    const sel = this.state.filtroQuemSel || [];
+    if (!sel.length) return sel;
+    const existem = this.opcoesDeQuem(conjuntoPedido).map(o => o.v);
+    const podada = sel.filter(v => existem.indexOf(v) >= 0);
+    return podada.length === sel.length ? sel : podada;
+  }
+
+  // Chamada depois de qualquer mudança no mundo (gravação nova, apagada,
+  // renomeada, gente entrando ou saindo). Só mexe no estado se algo caiu.
+  revisarSelecao() {
+    const podada = this.podarQuem();
+    if (podada === this.state.filtroQuemSel) return false;
+    this.setState({ filtroQuemSel: podada, sel: [], anchor: null }, this.reenquadrar);
+    return true;
+  }
+
+  opcoesDeQuem(conjuntoPedido) {
+    const conjunto = conjuntoPedido || this.filtroSplitAtual();
+    const opcoes = [];
+    if (conjunto !== 'dataset') {
+      this.alunosDisponiveis().forEach(a => opcoes.push({
+        v: 'nome:' + a.nome,
+        label: a.n === 0
+          ? `${a.nome} · na sala, ainda sem gravação`
+          : `${a.nome} · ${a.n} janela(s)` + (a.naSala ? ' · na sala' : '')
+      }));
+    }
+    if (conjunto !== 'live') {
+      this.participantesDoExperimento().forEach(n =>
+        opcoes.push({ v: 'participante:' + n, label: 'Participante ' + n }));
+    }
+    return opcoes;
+  }
+
+  // Lista já filtrada pela busca e marcada com o estado atual de cada
+  // checkbox, pronta para o template desenhar sem lógica extra.
+  opcoesDeQuemFiltradas() {
+    const termo = (this.state.filtroQuemBusca || '').trim().toLowerCase();
+    const sel = this.filtroQuemSelAtual();
+    const todas = termo ? this.opcoesDeQuem().filter(o => o.label.toLowerCase().indexOf(termo) >= 0) : this.opcoesDeQuem();
+    return todas.map(o => ({ v: o.v, label: o.label, marcado: sel.indexOf(o.v) >= 0, onToggle: () => this.toggleQuem(o.v) }));
+  }
+
+  toggleQuem = (v) => {
+    const atual = this.filtroQuemSelAtual();
+    const posicao = atual.indexOf(v);
+    const novo = posicao >= 0 ? atual.slice(0, posicao).concat(atual.slice(posicao + 1)) : atual.concat([v]);
+    this.desarmarBrush();
+    this.setState({ filtroQuemSel: novo, sel: [], anchor: null }, this.reenquadrar);
+  };
+
+  limparQuem = () => {
+    this.desarmarBrush();
+    this.setState({ filtroQuemSel: [], filtroQuemBusca: '', sel: [], anchor: null }, this.reenquadrar);
+  };
+
+  rotuloDeQuem() {
+    const sel = this.filtroQuemSelAtual();
+    if (!sel.length) return '';
+    if (sel.length === 1) {
+      const o = this.opcoesDeQuem().find(x => x.v === sel[0]);
+      // nunca mostrar a chave crua ("nome:Ana") se algo escapar da poda
+      return 'somente ' + (o ? o.label.split(' · ')[0] : sel[0].split(':').slice(1).join(':'));
+    }
+    return sel.length + ' pessoas selecionadas';
+  }
   totalVisivel() { return (this.D.amostras || []).reduce((n, s) => n + (this.passaFiltros(s) ? 1 : 0), 0); }
   contagemClasse(id) {
-    // a legenda tem que contar o que a vista atual realmente desenha. uma
-    // gravacao do iphone so tem coordenadas no espaco comum: contar ela em
-    // pca, t-sne ou umap ia mostrar um numero do lado de um grafico sem ela
+    // A legenda precisa contar o que a vista atual realmente desenha. Uma
+    // gravação do iPhone só tem coordenadas no espaço comum: anunciá-la em
+    // PCA, t-SNE ou UMAP mostraria um número ao lado de um gráfico sem ela.
     const ehTresD = this.vista() === 'umap3d';
     const chaves = ehTresD ? [] : this.chavesVista();
     return (this.byClass[id] || []).reduce((n, ix) => {
@@ -663,7 +883,10 @@ class Component extends DCLogic {
     const sel = this.state.sel.filter(visivel);
     const anchor = this.state.anchor && visivel(this.state.anchor) ? this.state.anchor : (sel[0] || null);
     this.desarmarBrush();
-    this.setState({ filtroSujeitoMin: inicio, filtroSujeitoMax: fim, filtroSplit: splitAtivo, sel: sel, anchor: anchor }, this.reenquadrar);
+    // Uma pessoa marcada que não pertence mais ao conjunto viraria um filtro
+    // invisível: a tela esvazia e nada na interface explica por quê.
+    const quemSel = this.podarQuem(splitAtivo);
+    this.setState({ filtroSujeitoMin: inicio, filtroSujeitoMax: fim, filtroSplit: splitAtivo, filtroQuemSel: quemSel, sel: sel, anchor: anchor }, this.reenquadrar);
   };
 
   alterarFaixa = (ponta, valor) => {
@@ -675,7 +898,7 @@ class Component extends DCLogic {
 
   limparFiltros = () => {
     this.desarmarBrush();
-    this.setState({ filtroSujeitoMin: null, filtroSujeitoMax: null, filtroSplit: 'todos', ocultas: [], sel: [], anchor: null }, this.reenquadrar);
+    this.setState({ filtroSujeitoMin: null, filtroSujeitoMax: null, filtroSplit: 'todos', filtroQuemSel: [], filtroQuemBusca: '', quemAberto: false, ocultas: [], sel: [], anchor: null }, this.reenquadrar);
   };
 
   alternarClasse(id, visivelAgora) {
@@ -686,7 +909,15 @@ class Component extends DCLogic {
     this.setState({ ocultas: ocultas, sel: sel, anchor: anchor });
   }
 
-  nomeTech(t) { return ({ pca: 'PCA', tsne: 't-SNE', umap: 'UMAP' })[t] || String(t).toUpperCase(); }
+  // O nome do painel é sempre a técnica. No espaço comum a chave começa com
+  // "harlive/", mas quem assiste quer ler PCA, t-SNE ou UMAP — não o nome
+  // interno do espaço.
+  nomeTech(chave) {
+    const nomes = { pca: 'PCA', tsne: 't-SNE', umap: 'UMAP' };
+    const texto = String(chave || '');
+    const tecnica = Object.keys(nomes).find(t => new RegExp('(^|/)' + t + '($|[-/])').test(texto));
+    return tecnica ? nomes[tecnica] : texto.split('/')[0].toUpperCase();
+  }
 
   fmt(v, d) { return typeof v === 'number' ? v.toLocaleString('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d }) : '—'; }
   fmtTempo(ms) { return typeof ms !== 'number' ? '—' : (ms < 2000 ? ms + ' ms' : this.fmt(ms / 1000, 1) + ' s'); }
@@ -784,36 +1015,64 @@ class Component extends DCLogic {
     this.cacheLente[cid] = res; return res;
   }
 
-  // ---------- paineis ----------
+  // ---------- painéis ----------
+  // ------------------------------------------------------------------ espaços
+  //
+  // Duas maneiras de olhar os mesmos movimentos: as 561 características prontas
+  // da UCI (oficial) e as 128 extraídas igualmente do HAR e do navegador
+  // (comum). O espaço é ortogonal à vista: PCA, t-SNE, UMAP e 3D existem nos
+  // dois, e só o comum aceita gravações novas.
+  espacoAtual() { return this.state.espaco === 'comum' && this.temEspacoComum() ? 'comum' : 'oficial'; }
+  temEspacoComum() { return (this.porTech['harlive'] || []).length > 0; }
+
+  chaveComum(tecnica) {
+    const lista = this.porTech['harlive'] || [];
+    return lista.find(k => k.indexOf('harlive/' + tecnica + '-comum') === 0) || null;
+  }
+
+  chaves3dDoEspaco() {
+    if (this.espacoAtual() === 'comum' && window.HAR_LIVE_CHAVE_3D) return window.HAR_LIVE_CHAVE_3D;
+    return this.umap3dKeyOficial;
+  }
+
   chavesVista() {
     const v = this.vista(), S = this.state;
+    if (this.espacoAtual() === 'comum') {
+      const mapa = { pca: ['pca'], tsne: ['tsne'], umap: ['umap'],
+                     comparar: ['pca', 'tsne', 'umap'], morph: ['pca', 'umap', 'tsne'] };
+      const pedidas = mapa[v];
+      if (pedidas) {
+        const chaves = pedidas.map(tec => this.chaveComum(tec)).filter(Boolean);
+        if (v === 'morph') return [chaves[S.morphI % chaves.length]].filter(Boolean);
+        return chaves;
+      }
+      if (v === 'contraste') return [S.cmpA, S.cmpB].filter(Boolean);
+      return [];
+    }
     if (v === 'morph') { const o = this.ordemMorph(); return [o[S.morphI % o.length]]; }
     if (v === 'contraste') return [S.cmpA, S.cmpB].filter(Boolean);
     if (v === 'pca') return (this.porTech['pca'] || []).slice(0, 1);
     if (v === 'tsne') return (this.porTech['tsne'] || []).slice(0, 3);
     if (v === 'umap') return (this.porTech['umap'] || []).slice(0, 3);
-    if (v === 'harlive') {
-      // ordem fixa pca, t-sne, umap: mesma das vistas oficiais, pra
-      // comparacao entre as tres tecnicas ficar lado a lado
-      const ordem = ['pca-comum', 'tsne-comum', 'umap-comum'];
-      const lista = this.porTech['harlive'] || [];
-      return ordem.map(p => lista.find(k => k.indexOf('harlive/' + p) === 0)).filter(Boolean);
-    }
     if (v === 'comparar') return ['pca', 'tsne', 'umap'].map(t => S.cfg[t]).filter(Boolean);
     return [];
   }
 
   ordemMorph() {
     const S = this.state;
-    return ['pca', 'umap', 'tsne'].map(t => S.cfg[t]).filter(Boolean);  // sem harlive: espaco diferente
+    return ['pca', 'umap', 'tsne'].map(t => S.cfg[t]).filter(Boolean);  // sem harlive: espaço diferente
   }
 
+  // O seletor de um painel oferece outros PERFIS da mesma técnica — nunca trocar
+  // a técnica do painel. No espaço comum as três chaves moram sob o mesmo
+  // prefixo, então a comparação é pelo nome exibido, não pelo prefixo.
   opcoesPara(k, i) {
-    const v = this.vista();
     const t = String(k).split('/')[0];
-    const lista = (v === 'contraste' || v === 'morph') ? this.cfgKeys.slice() : (this.porTech[t] || []).slice();
+    const mesmaTecnica = chave => this.nomeTech(chave) === this.nomeTech(k);
+    const lista = (this.porTech[t] || []).filter(mesmaTecnica);
     const out = lista.map(x => ({ v: x, label: x, disabled: false }));
-    if (v !== 'contraste' && v !== 'morph') (this.faltantes[t] || []).forEach(x => out.push({ v: x, label: x + '  — sem coordenadas neste arquivo', disabled: true }));
+    (this.faltantes[t] || []).filter(mesmaTecnica).forEach(x =>
+      out.push({ v: x, label: x + '  — sem coordenadas neste arquivo', disabled: true }));
     return out;
   }
 
@@ -822,7 +1081,7 @@ class Component extends DCLogic {
     const ext = v === 'morph' ? this.extensao(this.ordemMorph()) : null;
     const nCls = (this.D.dataset.classes || []).length;
     return keys.slice(0, 3).map((k, i) => {
-      const t = String(k).split('/')[0];
+      const t = k;
       const L = (this.lenteOn() && S.anchor) ? this.lenteDe(S.anchor, k) : null;
       let lenteTexto = '', lenteNota = '';
       if (L) {
@@ -832,6 +1091,7 @@ class Component extends DCLogic {
       const m = (this.D.metricas || {})[k] || {};
       return {
         ref: this.slots[i], selRef: this.selRefs[i], tecnica: this.nomeTech(t), cfgKey: k, params: this.descreve(k) || '—',
+        displaySeletor: this.opcoesPara(k, i).filter(o => !o.disabled).length > 1 ? 'inline-block' : 'none',
         metricas: this.metricasDe(k), opcoes: this.opcoesPara(k, i), ext: ext, selDisabled: v === 'pca' || v === 'tsne' || v === 'umap',
         selLabel: 'Configuração pré-calculada do painel ' + this.nomeTech(t),
         temLente: !!L, lenteTexto: lenteTexto, lenteNota: lenteNota,
@@ -896,17 +1156,34 @@ class Component extends DCLogic {
   dados3d() {
     const S = this.state, cor = this.paleta(), base = Math.max(2.4, this.ponto() * 0.46);
     const temSel = S.sel.length > 0, opacidade = temSel ? Math.max(0.08, this.aten()) : 0.84;
-    const traces = (this.D.dataset.classes || []).map(c => {
-      const x = [], y = [], z = [], subjects = [], custom = [];
+    // Mesma divisão do 2D: a turma compartilha a classe da atividade, mas sai
+    // num traço próprio, maior, senão some entre dez mil pontos.
+    const traces = [];
+    (this.D.dataset.classes || []).forEach(c => {
+      const grupos = { dataset: { x: [], y: [], z: [], subjects: [], custom: [] },
+                       turma:   { x: [], y: [], z: [], subjects: [], custom: [] } };
       (this.byClass[c.id] || []).forEach(ix => {
         const s = this.D.amostras[ix]; if (!this.passaFiltros(s)) return;
         const p = s.projecoes_3d && s.projecoes_3d[this.umap3dKey]; if (!p) return;
-        x.push(p[0]); y.push(p[1]); z.push(p[2]); subjects.push((s.meta && s.meta.subject) || 0);
-        custom.push([s.id, c.label_pt || s.label, (s.meta && s.meta.subject) || '—', (s.meta && s.meta.split) || '—']);
+        const g = this.ehDaTurma(s) ? grupos.turma : grupos.dataset;
+        g.x.push(p[0]); g.y.push(p[1]); g.z.push(p[2]);
+        g.subjects.push((s.meta && s.meta.subject) || 0);
+        g.custom.push([s.id, c.label_pt || s.label, (s.meta && s.meta.subject) || '—', (s.meta && s.meta.split) || '—']);
       });
-      const marker = { size: base, opacity: opacidade, symbol: this.simbolo3d(c), color: S.corPor === 'none' ? '#6E6E68' : cor[c.id] };
-      if (S.corPor === 'subject') Object.assign(marker, { color: subjects, cmin: 1, cmax: this.maxSujeito, colorscale: [[0,'#2C3E7B'],[.25,'#3E8FA8'],[.5,'#7FB069'],[.75,'#D79A3C'],[1,'#A33A2A']], showscale: false });
-      return { type: 'scatter3d', mode: 'markers', meta: 'classe', name: c.label_pt, x: x, y: y, z: z, customdata: custom, marker: marker, showlegend: false, hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>participante %{customdata[2]} · %{customdata[3]}<extra></extra>' };
+      ['dataset', 'turma'].forEach(qual => {
+        const g = grupos[qual];
+        if (!g.x.length) return;
+        const daTurma = qual === 'turma';
+        const marker = {
+          size: daTurma ? Math.max(11, base * 3.4) : base,
+          opacity: daTurma ? 1 : opacidade,
+          symbol: this.simbolo3d(c),
+          color: S.corPor === 'none' ? '#6E6E68' : cor[c.id]
+        };
+        if (daTurma) marker.line = { color: '#FFFFFF', width: 1.5 };
+        if (S.corPor === 'subject') Object.assign(marker, { color: g.subjects, cmin: 1, cmax: this.maxSujeito, colorscale: [[0,'#2C3E7B'],[.25,'#3E8FA8'],[.5,'#7FB069'],[.75,'#D79A3C'],[1,'#A33A2A']], showscale: false });
+        traces.push({ type: 'scatter3d', mode: 'markers', meta: 'classe', name: c.label_pt, x: g.x, y: g.y, z: g.z, customdata: g.custom, marker: marker, showlegend: false, hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>participante %{customdata[2]} · %{customdata[3]}<extra></extra>' });
+      });
     });
     const sx = [], sy = [], sz = [], st = [], sc = [];
     S.sel.forEach(id => {
@@ -954,6 +1231,30 @@ class Component extends DCLogic {
     if (window.__plot3d === this.plot3dEl) window.__plot3d = null;
     this.plot3dEl = null; this.sig3d = null;
   }
+
+  // A câmera do Plotly é um ponto `eye` em coordenadas esféricas em torno do
+  // centro. Girar é somar ângulo; aproximar é encurtar o raio.
+  moverCamera3d = ({ girar = 0, inclinar = 0, aproximar = 1 }) => {
+    if (!this.plot3dEl || !window.Plotly) return;
+    const cena = (this.plot3dEl.layout && this.plot3dEl.layout.scene) || {};
+    const olho = (cena.camera && cena.camera.eye) || { x: 1.45, y: 1.45, z: 1.15 };
+
+    const raio = Math.hypot(olho.x, olho.y, olho.z) * aproximar;
+    const raioLimitado = Math.min(6, Math.max(0.6, raio));
+    let azimute = Math.atan2(olho.y, olho.x) + girar;
+    let elevacao = Math.asin(Math.min(1, Math.max(-1, olho.z / Math.hypot(olho.x, olho.y, olho.z)))) + inclinar;
+    // trava perto dos polos: passar deles inverte a cena e desorienta
+    elevacao = Math.min(1.45, Math.max(-1.45, elevacao));
+
+    const horizontal = raioLimitado * Math.cos(elevacao);
+    window.Plotly.relayout(this.plot3dEl, {
+      'scene.camera.eye': {
+        x: horizontal * Math.cos(azimute),
+        y: horizontal * Math.sin(azimute),
+        z: raioLimitado * Math.sin(elevacao)
+      }
+    });
+  };
 
   resetCamera3d = () => {
     if (!this.plot3dEl || !window.Plotly) return;
@@ -1038,29 +1339,45 @@ class Component extends DCLogic {
     const semCor = S.corPor === 'none';
     const series = [], built = [];
     (D.dataset.classes || []).forEach(c => {
-      const arr = [];
+      // A turma agora divide a classe com o experimento: "sentado" é sentado,
+      // venha do dataset ou do celular. Mas são poucas janelas contra dez mil,
+      // e com a marca comum somem na nuvem — por isso saem numa segunda série,
+      // maior e desenhada por cima, em vez de um tamanho por ponto (que seria
+      // uma chamada de função para cada uma das dez mil amostras).
+      const arr = [], aoVivo = [];
       (this.byClass[c.id] || []).forEach(ix => {
         const s = D.amostras[ix]; if (!this.passaFiltros(s)) return; const pr = s.projecoes[k]; if (!pr) return;
-        arr.push([pr[0], pr[1], ix, (s.meta && s.meta.subject) || 0]);
+        (this.ehDaTurma(s) ? aoVivo : arr).push([pr[0], pr[1], ix, (s.meta && s.meta.subject) || 0]);
       });
       const escondida = ocultas.indexOf(c.id) >= 0;
-      // gravacao do iphone e so umas poucas janelas contra dez mil do
-      // experimento -- sem marca maior por cima ela some no meio da nuvem
-      const ehGravacao = c.id === 'VOCE';
+      const corDaClasse = semCor ? '#6E6E68' : cor[c.id];
       series.push({
         id: 'cls-' + c.id, name: c.label_pt, type: 'scatter', symbol: c.simbolo || 'circle',
-        symbolSize: ehGravacao ? Math.max(22, base * 2.6) : base,
-        z: ehGravacao ? 4 : 2, progressive: 700, progressiveThreshold: 1200, data: arr,
+        symbolSize: base,
+        z: 2, progressive: 700, progressiveThreshold: 1200, data: arr,
         itemStyle: {
-          color: semCor ? '#6E6E68' : cor[c.id],
-          borderColor: ehGravacao ? '#FFFFFF' : (S.corPor === 'subject' ? '#2A2A27' : '#FFFFFF'),
-          borderWidth: ehGravacao ? 2 : (base >= 9 ? 1 : 0.6),
+          color: corDaClasse,
+          borderColor: S.corPor === 'subject' ? '#2A2A27' : '#FFFFFF',
+          borderWidth: base >= 9 ? 1 : 0.6,
           opacity: escondida ? 0 : (temSel ? dim : 0.92)
         },
         emphasis: { scale: 1.5, itemStyle: { borderColor: '#121212', borderWidth: 2 } },
         silent: escondida
       });
       built.push({ id: 'cls-' + c.id, data: arr });
+      if (aoVivo.length) {
+        series.push({
+          id: 'viva-' + c.id, name: c.label_pt, type: 'scatter', symbol: c.simbolo || 'circle',
+          symbolSize: Math.max(22, base * 2.6), z: 4, data: aoVivo,
+          itemStyle: {
+            color: corDaClasse, borderColor: '#FFFFFF', borderWidth: 2,
+            opacity: escondida ? 0 : (temSel ? dim : 1)
+          },
+          emphasis: { scale: 1.3, itemStyle: { borderColor: '#121212', borderWidth: 2 } },
+          silent: escondida
+        });
+        built.push({ id: 'viva-' + c.id, data: aoVivo });
+      }
     });
 
     const L = (this.lenteOn() && S.anchor) ? this.lenteDe(S.anchor, k) : null;
@@ -1237,9 +1554,39 @@ class Component extends DCLogic {
     return saida;
   }
 
+  // As séries brutas vêm empacotadas no laboratório e cobrem apenas as janelas
+  // do experimento original. Uma gravação feita no navegador entra pelas
+  // coordenadas, não pelo sinal: mostrar um gráfico vazio para ela seria pior
+  // do que dizer que o dado não está aqui.
+  temSinalBruto(amostra) {
+    const I = this.D.interpretacao && this.D.interpretacao.signals;
+    if (!amostra || !I) return false;
+    const indice = this.idxOf[amostra.id];
+    return Number.isInteger(indice) && indice < I.shape[0];
+  }
+
+  avisoSemSinal(titulo, detalhe) {
+    return {
+      animation: false,
+      title: {
+        text: titulo, subtext: detalhe, left: 'center', top: 'middle',
+        textStyle: { color: '#3F3F3B', fontSize: 13, fontWeight: 600 },
+        subtextStyle: { color: '#5F5F59', fontSize: 12, width: 380, overflow: 'break' }
+      },
+      xAxis: { show: false }, yAxis: { show: false }, series: []
+    };
+  }
+
   opcaoSinal() {
     const amostra = this.focoAtual(), I = this.D.interpretacao.signals;
     if (!amostra) return { series: [] };
+    if (!this.temSinalBruto(amostra)) {
+      const quem = (amostra.meta && amostra.meta.nome) || 'esta gravação';
+      return this.avisoSemSinal(
+        'Sinal bruto não disponível para ' + quem,
+        'A janela veio do navegador e entra no mapa pelas coordenadas. O sinal completo fica no painel ao vivo, durante a captura.'
+      );
+    }
     const inicio = this.state.sinalTipo === 'gyro' ? 3 : 0;
     const unidade = I.channels[inicio].unit, cores = ['#0072B2', '#E69F00', '#009E73'];
     const series = [0, 1, 2].map((offset, index) => ({
@@ -1263,15 +1610,22 @@ class Component extends DCLogic {
     if (this.profileCache && this.profileCache.sel === this.state.sel) return this.profileCache.value;
     const I = this.D.interpretacao, nomes = I.feature_names, n = nomes.length;
     const multiplicador = I.features.quantization_multiplier, atual = new Float64Array(n), contagem = {};
+    let contribuiram = 0;
     this.state.sel.forEach(id => {
       const indice = this.idxOf[id], amostra = this.byId[id]; if (indice == null || !amostra) return;
+      // as 561 características só existem para as janelas do experimento
+      if (!this.temSinalBruto(amostra)) return;
       const inicio = indice * n; for (let j = 0; j < n; j += 1) atual[j] += this.featureData[inicio + j] / multiplicador;
       contagem[amostra.label] = (contagem[amostra.label] || 0) + 1;
+      contribuiram += 1;
     });
-    const total = Math.max(1, this.state.sel.length); for (let j = 0; j < n; j += 1) atual[j] /= total;
+    // seleção só com gravações do navegador: não há perfil a mostrar, e um
+    // gráfico de barras zeradas passaria a impressão errada de que há
+    if (!contribuiram) { this.profileCache = { sel: this.state.sel, value: null }; return null; }
+    const total = Math.max(1, contribuiram); for (let j = 0; j < n; j += 1) atual[j] /= total;
     const referencia = new Float64Array(n), rotulos = Object.keys(contagem);
     rotulos.forEach(label => {
-      const media = I.activity_mean_z[label] || [], peso = contagem[label] / total;
+      const media = I.activity_mean_z[label] || [], peso = contagem[label] / contribuiram;
       for (let j = 0; j < n; j += 1) referencia[j] += (media[j] || 0) * peso;
     });
     const indices = Array.from({ length: n }, (_, i) => i).sort((a, b) => Math.abs(atual[b]) - Math.abs(atual[a])).slice(0, 8);
@@ -1295,7 +1649,17 @@ class Component extends DCLogic {
   }
 
   opcaoPerfil() {
-    const perfil = this.perfilSelecao(); if (!perfil) return { series: [] };
+    const perfil = this.perfilSelecao();
+    if (!perfil) {
+      const foco = this.focoAtual();
+      if (foco && !this.temSinalBruto(foco)) {
+        return this.avisoSemSinal(
+          'Sem as 561 características para esta seleção',
+          'Elas pertencem ao experimento original e não podem ser recalculadas a partir de um sinal novo. É exatamente por isso que existe o espaço comum.'
+        );
+      }
+      return { series: [] };
+    }
     const nomes = perfil.indices.map(i => this.nomeFeature(this.D.interpretacao.feature_names[i]));
     return {
       animation: false, color: ['#0072B2', '#E69F00'], aria: { enabled: true, description: 'Oito características padronizadas mais fortes da seleção e sua referência por atividade.' },
@@ -1372,6 +1736,19 @@ class Component extends DCLogic {
       mostraInspetor: false,
       btnInspetor: { label: 'Detalhes: selecione um ponto', on: this.alternarInspetor, disabled: true, bg: '#FFFFFF', fg: '#5F5F59', op: .45 }
     };
+    // O inspetor mostra o sinal bruto e as 561 características, que existem só
+    // para as janelas do experimento. Oferecer o botão para uma gravação do
+    // navegador levaria a painéis vazios; melhor dizer por que não há detalhe.
+    if (!this.temSinalBruto(amostra)) {
+      const quem = (amostra.meta && amostra.meta.nome) || 'esta gravação';
+      return {
+        mostraInspetor: false,
+        btnInspetor: {
+          label: 'Sem sinal bruto para ' + quem, on: this.alternarInspetor,
+          disabled: true, bg: '#FFFFFF', fg: '#5F5F59', op: .45
+        }
+      };
+    }
     const btnInspetor = {
       label: S.inspetorAberto ? 'Fechar detalhes da amostra' : 'Abrir detalhes da amostra', on: this.alternarInspetor,
       disabled: false, bg: S.inspetorAberto ? '#121212' : '#FFFFFF', fg: S.inspetorAberto ? '#FFFFFF' : '#121212', op: 1
@@ -1404,11 +1781,27 @@ class Component extends DCLogic {
     };
   }
 
-  // ---------- navegacao ----------
+  // ---------- navegação ----------
   onKey = e => {
     const tag = e.target && e.target.tagName;
     if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
     if (e.key === 'Escape') return this.limpar();
+
+    // Na vista 3D o teclado gira e aproxima a cena. Numa apresentação o mouse
+    // some da mão; as setas dão controle sem precisar mirar em nada.
+    if (this.vista() === 'umap3d' && this.modo() !== 'apresentacao') {
+      const passos = {
+        ArrowLeft:  { girar: -0.18 },
+        ArrowRight: { girar: 0.18 },
+        ArrowUp:    { inclinar: 0.14 },
+        ArrowDown:  { inclinar: -0.14 },
+        '+': { aproximar: 0.85 }, '=': { aproximar: 0.85 },
+        '-': { aproximar: 1.18 }, _: { aproximar: 1.18 }
+      }[e.key];
+      if (passos) { e.preventDefault(); return this.moverCamera3d(passos); }
+      if (e.key === '0') { e.preventDefault(); return this.resetCamera3d(); }
+    }
+
     if (this.modo() !== 'apresentacao') return;
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); this.irCena(this.state.cena + 1); }
     else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); this.irCena(this.state.cena - 1); }
@@ -1451,9 +1844,16 @@ class Component extends DCLogic {
     }
     const filtrosAtivos = [];
     if (!this.faixaCompleta()) filtrosAtivos.push('participantes ' + this.filtroSujeitoMinAtual() + '–' + this.filtroSujeitoMaxAtual());
-    if (this.filtroSplitAtual() !== 'todos') filtrosAtivos.push({ train: 'treino', test: 'teste', iphone: 'suas gravações no iPhone' }[this.filtroSplitAtual()] || this.filtroSplitAtual());
+    if (this.filtroSplitAtual() !== 'todos') filtrosAtivos.push({ dataset: 'dataset', live: 'LIVE' }[this.filtroSplitAtual()] || this.filtroSplitAtual());
+    const quem = this.rotuloDeQuem(); if (quem) filtrosAtivos.push(quem);
     if (S.ocultas.length) filtrosAtivos.push((this.D.dataset.classes || []).length - S.ocultas.length + ' atividade(s) ativa(s)');
-    partes.push(this.totalVisivel().toLocaleString('pt-BR') + ' de ' + (this.D.amostras || []).length.toLocaleString('pt-BR') + ' amostras visíveis' + (filtrosAtivos.length ? ' — ' + filtrosAtivos.join(', ') : '') + '.');
+    const visiveis = this.totalVisivel();
+    partes.push(visiveis.toLocaleString('pt-BR') + ' de ' + (this.D.amostras || []).length.toLocaleString('pt-BR') + ' amostras visíveis' + (filtrosAtivos.length ? ' — ' + filtrosAtivos.join(', ') : '') + '.');
+    // Tela vazia com filtro ligado é a falha mais confusa que existe: o mapa
+    // some e nada explica. Se sobrou zero, o rodapé diz o motivo.
+    if (visiveis === 0 && filtrosAtivos.length) {
+      partes.push('Nenhuma amostra passa nos filtros atuais — use "Limpar filtros" para voltar.');
+    }
     if (S.cvd !== 'padrao') partes.push('Simulação de visão de cores: ' + S.cvd + ' (paleta vem pronta do dado).');
     return partes.join(' ');
   }
@@ -1485,7 +1885,10 @@ class Component extends DCLogic {
       return {
         id: id, atividade: c.label_pt || s.label || '—', glifoTexto: this.glifoTexto(c),
         cor: S.corPor === 'none' ? '#6E6E68' : (cor[s.label] || '#6E6E68'),
-        subject: (s.meta && s.meta.subject) != null ? s.meta.subject : '—',
+        // quem gravou pelo celular tem nome; o dataset original só tem número
+        subject: (s.meta && s.meta.nome)
+          ? `${s.meta.nome} (${s.meta.subject})`
+          : ((s.meta && s.meta.subject) != null ? s.meta.subject : '—'),
         split: (s.meta && s.meta.split) || '—', papel: papel
       };
     });
@@ -1514,7 +1917,22 @@ class Component extends DCLogic {
       metodoNota: ({ pca: 'Um painel amplo destaca PC1 × PC2 e a variância explicada.', tsne: 'Compare perplexidade 10, 30 e 50 lado a lado.', umap: 'Compare perfis local, equilibrado e amplo lado a lado.' })[v] || '',
 
       segModo: this.seg([{ v: 'apresentacao', label: 'Apresentação' }, { v: 'laboratorio', label: 'Laboratório' }], modo, x => this.setState({ modo: x })),
-      segVista: this.seg([{ v: 'comparar', label: 'Comparar' }, { v: 'pca', label: 'PCA' }, { v: 'tsne', label: 't-SNE' }, { v: 'umap', label: 'UMAP' }, { v: 'umap3d', label: 'UMAP 3D' }, { v: 'harlive', label: 'HAR live' }, { v: 'morph', label: 'Morph' }, { v: 'contraste', label: 'Bonito vs. fiel' }], S.vistaLab, x => this.setState({ vistaLab: x })),
+      temEspacoComum: this.temEspacoComum(),
+      segEspaco: this.seg([
+        { v: 'comum', label: 'comum (aceita gravações)' },
+        { v: 'oficial', label: '561 originais da UCI' }
+      ], this.espacoAtual(), x => {
+        // trocar de espaço troca as coordenadas de tudo: seleção e lente
+        // apontariam para posições de outro mapa
+        this.setState({ espaco: x, sel: [], anchor: null }, this.reenquadrar);
+      }),
+      espacoNota: this.espacoAtual() === 'comum'
+        ? 'As 128 características extraídas igualmente do HAR e do navegador. É o único espaço onde uma gravação nova entra por transform().'
+        : 'As 561 características prontas da UCI. Não aceita gravações novas: elas não podem ser recalculadas a partir de um sinal cru.',
+      segVista: this.seg([
+        { v: 'comparar', label: 'PCA · t-SNE · UMAP' },
+        { v: 'umap3d', label: 'UMAP 3D' }
+      ], S.vistaLab, x => this.setState({ vistaLab: x })),
       segCor: this.seg([{ v: 'label', label: 'Atividade' }, { v: 'subject', label: 'Participante' }, { v: 'none', label: 'Sem cor' }], S.corPor, x => this.setState({ corPor: x })),
       segMs: this.seg([{ v: 300, label: '300 ms' }, { v: 500, label: '500 ms' }, { v: 700, label: '700 ms' }], S.morphMs, x => this.setState({ morphMs: x })),
       cvdOpcoes: this.CVD, cvdValor: S.cvd, onCvd: e => this.setState({ cvd: e.target.value }),
@@ -1524,17 +1942,32 @@ class Component extends DCLogic {
       faixaInicioPct: ((this.filtroSujeitoMinAtual() - 1) / Math.max(1, this.maxSujeito - 1)) * 100,
       faixaFimPct: 100 - ((this.filtroSujeitoMaxAtual() - 1) / Math.max(1, this.maxSujeito - 1)) * 100,
       faixaMinZ: this.filtroSujeitoMinAtual() >= this.maxSujeito - 1 ? 4 : 3, faixaMaxZ: 4,
+      // Só a FAIXA numérica some quando há gente escolhida pelo nome, porque
+      // aí ela não filtra mais nada (passaQuem decide sozinho) e mostrá-la
+      // ativa seria mentira. O "Conjunto" fica sempre: ele define de qual
+      // universo a lista de pessoas é montada, então os dois trabalham juntos.
+      displayFaixa: this.filtroQuemSelAtual().length === 0 ? 'flex' : 'none',
       faixaRotulo: this.faixaCompleta() ? 'Todos (1–' + this.maxSujeito + ')' : (this.filtroSujeitoMinAtual() === this.filtroSujeitoMaxAtual() ? 'Somente ' + this.filtroSujeitoMinAtual() : this.filtroSujeitoMinAtual() + '–' + this.filtroSujeitoMaxAtual()),
       filtroSplitValor: this.filtroSplitAtual(),
-      filtroSplitOpcoes: [{ v: 'todos', label: 'Tudo' }].concat(this.splits.map(v => ({ v: v, label: v === 'train' ? 'Treino' : (v === 'test' ? 'Teste' : (v === 'iphone' ? 'iPhone (suas gravações)' : v)) }))),
+      filtroSplitOpcoes: [{ v: 'todos', label: 'Tudo' }, { v: 'dataset', label: 'Dataset' }, { v: 'live', label: 'LIVE' }],
       onFiltroSplit: e => this.aplicarFiltros(this.filtroSujeitoMinAtual(), this.filtroSujeitoMaxAtual(), e.target.value),
+      temAlunos: true,
+      quemAberto: !!S.quemAberto,
+      quemBtn: this.botao('Quem: ' + (this.rotuloDeQuem() || 'Todos'), () => this.setState({ quemAberto: !S.quemAberto }), S.quemAberto || this.filtroQuemSelAtual().length > 0),
+      quemBuscaValor: S.filtroQuemBusca || '',
+      onQuemBusca: e => this.setState({ filtroQuemBusca: e.target.value }),
+      quemOpcoesFiltradas: this.opcoesDeQuemFiltradas(),
+      quemSemResultado: this.opcoesDeQuemFiltradas().length === 0,
+      onQuemLimpar: this.limparQuem,
       filtroResumo: this.totalVisivel().toLocaleString('pt-BR') + ' de ' + (D.amostras || []).length.toLocaleString('pt-BR') + ' amostras visíveis',
-      filtrosLimpos: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && !S.ocultas.length,
-      opLimparFiltros: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && !S.ocultas.length ? 0.45 : 1,
+      filtrosLimpos: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && this.filtroQuemSelAtual().length === 0 && !S.ocultas.length,
+      opLimparFiltros: this.faixaCompleta() && this.filtroSplitAtual() === 'todos' && this.filtroQuemSelAtual().length === 0 && !S.ocultas.length ? 0.45 : 1,
       onLimparFiltros: this.limparFiltros,
 
       ref3d: this.plot3dRef, onResetCamera3d: this.resetCamera3d, displayControles2d: v === 'umap3d' ? 'none' : 'inline-block',
-      umap3dParams: 'n_components 3 · n_neighbors 30 · min_dist 0,10 · entrada 561D padronizada · seed 42',
+      umap3dParams: this.espacoAtual() === 'comum'
+        ? 'n_components 3 · n_neighbors 30 · min_dist 0,10 · entrada 128D comuns ao HAR e ao navegador · seed 42'
+        : 'n_components 3 · n_neighbors 30 · min_dist 0,10 · entrada 561D padronizada · seed 42',
       umap3dMetricas: [
         { k: 'pontos', v: this.totalVisivel().toLocaleString('pt-BR') },
         { k: 'trust k10', v: this.fmt(m3.trustworthiness_k10, 3) },
@@ -1568,7 +2001,7 @@ class Component extends DCLogic {
       tabelaCols: ['id da amostra', 'atividade', 'participante', 'conjunto', 'papel na seleção'],
       tabelaLinhas: linhas,
       tabelaLegenda: 'Seleção atual: ' + S.sel.length + ' amostra(s)' + (S.sel.length > 60 ? ' — exibindo as 60 primeiras' : '') + '. A tabela lista apenas a seleção, nunca o dataset inteiro.',
-      dica: v === 'umap3d' ? 'arraste rotaciona · roda aproxima · clique seleciona (shift soma) · duplo clique restaura a câmera' : (modo === 'apresentacao' ? '← → cenas · clique seleciona · ' : 'clique seleciona (shift soma) · ') + 'arraste move · roda dá zoom · laço/retângulo no canto do painel (Esc solta a ferramenta e limpa)'
+      dica: v === 'umap3d' ? 'setas giram · + e − aproximam · 0 restaura · arraste rotaciona · clique seleciona (shift soma)' : (modo === 'apresentacao' ? '← → cenas · clique seleciona · ' : 'clique seleciona (shift soma) · ') + 'arraste move · roda dá zoom · laço/retângulo no canto do painel (Esc solta a ferramenta e limpa)'
     };
   }
 
