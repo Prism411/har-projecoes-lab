@@ -13,7 +13,7 @@
     "conexao-dot", "conexao-label", "contagem-turma", "lista-turma", "placar",
     "qr-imagem", "qr-link", "btn-ampliar", "btn-reduzir",
     "atividade", "duracao", "contagem", "admin-mensagem",
-    "btn-preparar", "btn-iniciar", "btn-parar", "btn-apagar"
+    "btn-preparar", "btn-iniciar", "btn-parar", "btn-apagar", "btn-demonstrar"
   ].map(id => [id, document.getElementById(id)]));
 
   const estado = {
@@ -178,6 +178,14 @@
           `Agora é ${mensagem.nome}` + (quantas ? ` — ${quantas} gravação(ões) corrigida(s).` : "."),
           "ok"
         );
+      } else if (mensagem.acao === "demonstrar") {
+        if (mensagem.gravacoes) {
+          const quem = (mensagem.pessoas || []).join(", ");
+          avisar(`Preenchi ${mensagem.gravacoes} participante(s) com janelas reais de `
+            + `${mensagem.atividade}${quem ? ": " + quem : ""}.`, "ok");
+        } else {
+          avisar(`Não consegui preencher: ${mensagem.erro || "motivo desconhecido"}.`, "erro");
+        }
       } else if (mensagem.acao === "remover") {
         avisar(
           mensagem.aparelhos
@@ -325,6 +333,15 @@
       document.body.classList.toggle("qr-ampliado");
     });
   }
+  if (elementos["btn-demonstrar"]) {
+    elementos["btn-demonstrar"].addEventListener("click", () => {
+      if (!estado.conectado) return avisar("Sem conexão com o relay.", "erro");
+      estado.websocket.send(JSON.stringify({
+        acao: "demonstrar", atividade: elementos["atividade"].value
+      }));
+    });
+  }
+
   if (elementos["btn-reduzir"]) {
     elementos["btn-reduzir"].addEventListener("click", () => {
       document.body.classList.remove("qr-ampliado");

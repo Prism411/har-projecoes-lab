@@ -117,6 +117,10 @@
             split: "iphone",
             source_row: indiceJanela + 1,
             atividade_instruida: gravacao.atividade || null,
+            // preenchimento simulado: janela real do dataset atribuída a quem
+            // estava na sala mas não conseguiu entregar a captura. Fica no
+            // dado para que o medido e o preenchido possam ser separados.
+            simulado: gravacao.simulado === true,
             situacao: (gravacao.situacoes || [])[indiceJanela] || null
           },
           projecoes: projecoes,

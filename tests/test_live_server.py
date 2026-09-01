@@ -221,6 +221,28 @@ class GestaoDaTurmaTest(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([g["participante"] for g in local_hub._projetadas], [32])
 
 
+class DemonstracaoTest(unittest.TestCase):
+    """A rede de segurança da aula: mapa nunca vazio, e nada inventado."""
+
+    def test_demonstrar_nao_exige_participante(self) -> None:
+        comando = sanitizar_comando({"acao": "demonstrar", "atividade": "WALKING"})
+        self.assertEqual(comando["type"], "gestao")
+        self.assertEqual(comando["atividade"], "WALKING")
+        self.assertNotIn("participante", comando)
+
+    def test_demonstrar_so_aceita_atividade_do_experimento(self) -> None:
+        """Rotular a simulação com uma atividade inventada seria pior que nada."""
+        for atividade in ("DANCANDO", "", None, 42):
+            with self.assertRaises(MessageValidationError):
+                sanitizar_comando({"acao": "demonstrar", "atividade": atividade})
+
+    def test_demonstrar_nao_vira_mensagem_para_os_aparelhos(self) -> None:
+        self.assertEqual(
+            sanitizar_comando({"acao": "demonstrar", "atividade": "SITTING"})["type"],
+            "gestao",
+        )
+
+
 class VocabularioDeGestaoTest(unittest.TestCase):
     def test_acoes_de_gestao_sao_aceitas(self) -> None:
         for acao in ("remover", "esquecer"):

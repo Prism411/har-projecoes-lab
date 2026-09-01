@@ -26,6 +26,9 @@ LIVE_DIR = ROOT / "live"
 LIVE_SPACE_DIR = ROOT / "results" / "live-space"
 GRAVACOES_ARQUIVO = ROOT / "gravacoes-iphone.json"
 LOGGER = logging.getLogger("har-live")
+# Quantas janelas cada preenchimento simulado recebe: o mesmo tamanho de uma
+# captura curta de verdade, para não destoar no mapa.
+JANELAS_SIMULADAS = 6
 
 MAX_RECORDING_SAMPLES = 20000
 MAX_GRAVACOES_GUARDADAS = 400
@@ -68,7 +71,7 @@ STATUS_VALUES = {"sensors-granted", "calibrating", "calibrated"}
 # Duas famílias, de responsabilidades diferentes: uma vira mensagem para os
 # aparelhos da turma, a outra age no próprio relay e não chega a celular nenhum.
 ACOES_DE_COMANDO = {"preparar", "iniciar", "parar", "limpar"}
-ACOES_DE_GESTAO = {"remover", "renomear", "esquecer"}
+ACOES_DE_GESTAO = {"remover", "renomear", "esquecer", "demonstrar"}
 MAX_NOME = 24
 SUMMARY_REASONS = {"completed", "manual", "connection-lost", "page-hidden"}
 
@@ -459,6 +462,15 @@ def sanitizar_comando(message: object) -> dict[str, Any]:
     acao = short_text(message.get("acao"), "acao", maximum=20)
     if acao not in ACOES_DE_COMANDO and acao not in ACOES_DE_GESTAO:
         raise MessageValidationError("Ação de comando não permitida.")
+
+    if acao == "demonstrar":
+        # Rede de segurança da aula: entra no mapa sem depender de celular
+        # nenhum, usando janelas REAIS do dataset — nada é inventado.
+        return {
+            "type": "gestao",
+            "acao": acao,
+            "atividade": activity_name(message.get("atividade")),
+        }
 
     if acao in ACOES_DE_GESTAO:
         # Gestão da turma: age no relay, não vira mensagem para os aparelhos.
@@ -957,12 +969,97 @@ class SessionHub:
         isto a única saída era apagar tudo de todo mundo.
         """
         acao = comando["acao"]
+        if acao == "demonstrar":
+            return await self._demonstrar(session, comando["atividade"])
         numero = comando["participante"]
         if acao == "remover":
             return await self._remover_participante(session, numero)
         if acao == "renomear":
             return await self._renomear_participante(session, numero, comando["nome"])
         return await self._esquecer_participante(numero)
+
+    async def _demonstrar(self, session: str, atividade: str) -> dict[str, Any]:
+        """Completa o mapa com quem está na sala e não conseguiu entregar.
+
+        Uma aula inteira já falhou em silêncio: a captura não vem — rede da
+        sala, tela apagando, um aparelho teimoso — e o mapa fica vazio na
+        frente de todo mundo. Isto preenche quem ESTÁ conectado agora e ainda
+        não tem gravação daquela atividade, cada um com o seu próprio nome, e
+        assim a projeção reflete a sala.
+
+        As janelas são reais, tiradas do próprio dataset da UCI. O que é
+        atribuição é a pessoa: por isso cada gravação assim fica marcada com
+        `simulado`, que aparece nos detalhes da amostra e permite separar
+        depois o que foi medido do que foi preenchido.
+        """
+        caminho = LIVE_SPACE_DIR / "referencia.json"
+        if not caminho.exists():
+            return {"acao": "demonstrar", "gravacoes": 0, "erro": "referência ausente"}
+        referencia = json.loads(caminho.read_text(encoding="utf-8"))
+        indices = [i for i, nome in enumerate(referencia.get("atividades", [])) if nome == atividade]
+        if len(indices) < JANELAS_SIMULADAS:
+            return {"acao": "demonstrar", "gravacoes": 0, "erro": "sem janelas dessa atividade"}
+
+        async with self._lock:
+            presentes = dict(self._participantes.get(session, {}))
+            nomes = dict(self._nomes.get(session, {}))
+            ja_tem = {
+                gravacao.get("participante")
+                for gravacao in self._projetadas
+                if gravacao.get("atividade") == atividade
+            }
+        # Só quem se identificou. Uma conexão sem nome é quase sempre aba
+        # esquecida ou aparelho que abriu e parou na primeira tela — preencher
+        # isso põe "Participante 37" no mapa, que não é ninguém da turma.
+        identificados = {n for n in presentes.values() if n in nomes}
+        faltantes = sorted(identificados - ja_tem)
+
+        if not faltantes:
+            # ninguém conectado (ou todos já entregaram): uma janela avulsa
+            # ainda evita a tela vazia
+            numero, _ = await self.reservar_participante(session, PRIMEIRO_PARTICIPANTE)
+            faltantes = [numero]
+            nomes.setdefault(numero, "Simulação")
+
+        inseridas = 0
+        for numero in faltantes:
+            inicio = secrets.randbelow(max(1, len(indices) - JANELAS_SIMULADAS))
+            escolhidos = indices[inicio:inicio + JANELAS_SIMULADAS]
+
+            def recorte(chave: str) -> list[list[float]]:
+                dados = referencia.get(chave) or []
+                return [dados[i] for i in escolhidos if i < len(dados)]
+
+            gravacao = {
+                "participante": numero,
+                "nome": nomes.get(numero, f"Participante {numero}"),
+                "atividade": atividade,
+                "coordenadas": recorte("coordenadas"),
+                "coordenadas_pca": recorte("coordenadas_pca"),
+                "coordenadas_tsne": recorte("coordenadas_tsne"),
+                "coordenadas_3d": recorte("coordenadas_3d"),
+                "situacoes": ["simulada"] * len(escolhidos),
+                "simulado": True,
+                "quando": int(time.time() * 1000),
+            }
+            async with self._lock:
+                self._projetadas.append(gravacao)
+                del self._projetadas[:-MAX_GRAVACOES_GUARDADAS]
+            await self._avisar_dashboards(
+                session,
+                dict(gravacao, type="projection", session=session,
+                     janelas=len(escolhidos),
+                     server_received_at=gravacao["quando"]),
+            )
+            inseridas += 1
+
+        async with self._lock:
+            self._gravar_no_disco()
+        LOGGER.warning(
+            "preenchimento simulado de %s para %s participante(s)", atividade, inseridas
+        )
+        return {"acao": "demonstrar", "atividade": atividade, "gravacoes": inseridas,
+                "pessoas": [nomes.get(n, f"Participante {n}") for n in faltantes]}
 
     async def _remover_participante(self, session: str, numero: int) -> dict[str, Any]:
         async with self._lock:
