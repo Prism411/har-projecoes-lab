@@ -4,6 +4,7 @@ import argparse
 import asyncio
 import io
 import json
+import logging
 import math
 import os
 import secrets
@@ -24,6 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 LIVE_DIR = ROOT / "live"
 LIVE_SPACE_DIR = ROOT / "results" / "live-space"
 GRAVACOES_ARQUIVO = ROOT / "gravacoes-iphone.json"
+LOGGER = logging.getLogger("har-live")
+
 MAX_RECORDING_SAMPLES = 20000
 MAX_GRAVACOES_GUARDADAS = 400
 # Os participantes 1 a 30 são do experimento original da UCI. Quem grava pelo
@@ -751,6 +754,9 @@ class SessionHub:
         try:
             resultado = await projetor.projetar(amostras)
         except EspacoIndisponivel as erro:
+            LOGGER.warning(
+                "projeção indisponível para o participante %s: %s", participante, erro
+            )
             await self._avisar_dashboards(
                 session,
                 {
@@ -762,6 +768,13 @@ class SessionHub:
             )
             return
         except Exception as erro:  # gravação curta ou sinal inutilizável
+            # Sem este registro a falha é invisível: ela só era anunciada aos
+            # painéis abertos, e o log não guardava nada. Uma aula inteira pode
+            # falhar sem deixar rastro nenhum para investigar depois.
+            LOGGER.warning(
+                "projeção falhou para o participante %s (%s amostras): %s",
+                participante, len(amostras), erro, exc_info=True,
+            )
             await self._avisar_dashboards(
                 session,
                 {

@@ -43,15 +43,26 @@
     });
   }
 
-  // etapa 2 → 3: sensores confirmados (mobile.js marca sensor-dot como "ok"
-  // quando aceleração e rotação estão realmente chegando, não só permitidas)
+  /* etapa 2 → 3: sensores confirmados E conectado à sala.
+
+     Sensor entregando não basta. Sem o relay do outro lado, o aluno chegava a
+     uma tela dizendo "Pronto — aguarde o professor" e esperava por uma partida
+     que nunca chegaria: a sala inteira parecia certa e nada era gravado.
+     Conexão é condição para dizer que ele está pronto. */
   const pontoSensor = document.getElementById("sensor-dot");
-  if (pontoSensor) {
-    const observadorSensor = new MutationObserver(() => {
-      if (atual === 2 && pontoSensor.dataset.state === "ok") mostrar(3);
-    });
-    observadorSensor.observe(pontoSensor, { attributes: true, attributeFilter: ["data-state"] });
+  const conectado = () => document.body.dataset.conectado === "1";
+  const sensorOk = () => pontoSensor && pontoSensor.dataset.state === "ok";
+
+  function talvezAvancar() {
+    if (atual === 2 && sensorOk() && conectado()) mostrar(3);
   }
+
+  if (pontoSensor) {
+    new MutationObserver(talvezAvancar)
+      .observe(pontoSensor, { attributes: true, attributeFilter: ["data-state"] });
+  }
+  new MutationObserver(talvezAvancar)
+    .observe(document.body, { attributes: true, attributeFilter: ["data-conectado"] });
 
 
 })();

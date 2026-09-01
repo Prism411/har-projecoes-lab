@@ -10,7 +10,7 @@
   const token = query.get("token") || "";
 
   const elementos = Object.fromEntries([
-    "conexao-dot", "conexao-label", "contagem-turma", "lista-turma",
+    "conexao-dot", "conexao-label", "contagem-turma", "lista-turma", "placar",
     "qr-imagem", "qr-link", "btn-ampliar", "btn-reduzir",
     "atividade", "duracao", "contagem", "admin-mensagem",
     "btn-preparar", "btn-iniciar", "btn-parar", "btn-apagar"
@@ -20,7 +20,9 @@
     websocket: null,
     conectado: false,
     turma: [],
-    gravando: new Set()
+    gravando: new Set(),
+    gravacoes: 0,
+    falhas: 0
   };
 
   function avisar(texto, tom = "") {
@@ -52,6 +54,23 @@
       if (anonimoA) return a.participante - b.participante;
       return a.nome.localeCompare(b.nome, "pt-BR", { sensitivity: "base" });
     });
+  }
+
+  function nomeDoParticipante(numero) {
+    const pessoa = estado.turma.find(p => p.participante === numero);
+    return pessoa ? pessoa.nome : `participante ${numero}`;
+  }
+
+  /* Placar do que REALMENTE chegou.
+
+     Sem ele, a única forma de saber se a aula está funcionando era abrir o
+     laboratório e procurar pontos novos no meio de dez mil. */
+  function pintarPlacar() {
+    const alvo = elementos["placar"];
+    if (!alvo) return;
+    alvo.textContent = `${estado.gravacoes} gravação(ões) recebida(s)`
+      + (estado.falhas ? ` · ${estado.falhas} falha(s)` : "");
+    alvo.dataset.tone = estado.falhas ? "erro" : (estado.gravacoes ? "ok" : "");
   }
 
   function pintarTurma() {
@@ -204,9 +223,31 @@
       pintarTurma();
       return;
     }
+    /* Falha de gravação tem que gritar no painel.
+
+       Ela era anunciada só como `projection-status` e este painel ignorava a
+       mensagem: quem conduz a aula apertava iniciar, a turma gravava, tudo
+       falhava — e a tela não dizia absolutamente nada. */
+    if (mensagem.type === "projection-status") {
+      const quem = nomeDoParticipante(mensagem.participante);
+      if (mensagem.status === "calculando") {
+        avisar(`Projetando a gravação de ${quem}…`, "");
+      } else if (mensagem.status === "falhou") {
+        estado.falhas += 1;
+        avisar(`FALHOU a gravação de ${quem}: ${mensagem.message || "motivo não informado"}`, "erro");
+      } else if (mensagem.status === "indisponivel") {
+        estado.falhas += 1;
+        avisar(`Projeção indisponível: ${mensagem.message || "espaço não construído"}`, "erro");
+      }
+      pintarPlacar();
+      return;
+    }
+
     if (mensagem.type === "projection") {
+      estado.gravacoes += 1;
       avisar(`${mensagem.nome || "Participante " + mensagem.participante} entrou no mapa `
         + `(${mensagem.janelas} janelas).`, "ok");
+      pintarPlacar();
       return;
     }
     if (mensagem.type === "error") {

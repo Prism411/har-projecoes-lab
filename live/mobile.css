@@ -400,3 +400,30 @@ body {
 .world-x { right: 0.8rem; bottom: 0.8rem; color: var(--blue-dark); }
 .world-y { right: 3rem; bottom: 0.8rem; color: var(--orange); }
 .world-z { right: 5.2rem; bottom: 0.8rem; color: var(--green); }
+
+/* Só aparece quando o relay não está do outro lado. Uma bolinha de status no
+   topo não basta: quem está esperando a partida olha para a tela, não para o
+   cabeçalho. */
+.aviso-sem-conexao { display: none; }
+body[data-conectado="0"] .aviso-sem-conexao {
+  display: block;
+  margin-top: 10px;
+  padding: 12px 14px;
+  font-weight: 600;
+  color: #7f1d1d;
+  background: #fee2e2;
+  border: 2px solid #7f1d1d;
+  border-radius: 10px;
+}
+
+/* A instrução manda prender o aparelho na cintura; a tela apagando aborta a
+   captura. A trava de tela cobre o caso comum, mas nem todo navegador tem —
+   então o aviso fica visível de qualquer forma. */
+.ajuda.destaque {
+  margin-top: 8px;
+  padding: 10px 12px;
+  color: #7c4a03;
+  background: #fff4e5;
+  border: 1px solid #e8a33d;
+  border-radius: 8px;
+}

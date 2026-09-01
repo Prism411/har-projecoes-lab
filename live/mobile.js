@@ -85,6 +85,7 @@
   ].map(id => [id, document.getElementById(id)]));
 
   const state = {
+    travaDeTela: null,
     websocket: null,
     connected: false,
     permission: false,
@@ -118,6 +119,15 @@
 
   function vector(source, keys) {
     return keys.map(key => numberOrNull(source && source[key]));
+  }
+
+  /* A conexão com a sala precisa ser visível fora do mobile.js.
+
+     Sem isto, o aluno chegava à tela "Pronto" só por ter sensores — e ficava
+     esperando a partida de um relay que nunca o viu, numa tela dizendo que
+     estava tudo certo. */
+  function marcarConexao() {
+    document.body.dataset.conectado = state.connected ? "1" : "0";
   }
 
   function setDot(name, status, label) {
@@ -195,6 +205,7 @@
     setDot("socket", "warn", "Conectando ao notebook");
     websocket.addEventListener("open", () => {
       state.connected = true;
+      marcarConexao();
       setDot("socket", "ok", `Conectado · sessão ${session}`);
       send(saudacao());
       baterCoracao();
@@ -208,6 +219,7 @@
     });
     websocket.addEventListener("close", event => {
       state.connected = false;
+      marcarConexao();
       pararCoracao();
       if (state.recording || state.countingDown) stopRecording("connection-lost");
       if (event.code === 1008) {
@@ -462,8 +474,31 @@
     }, 1000);
   }
 
+  /* Trava de tela.
+
+     A instrução é prender o aparelho na cintura — e aí a tela apaga sozinha,
+     a página fica oculta e a gravação era abortada com meia dúzia de leituras,
+     abaixo do mínimo de 64 para formar uma janela. Uma aula inteira gravou
+     assim, sem nada chegar do outro lado. Com a trava, a tela não apaga
+     durante a captura. */
+  async function segurarTela() {
+    try {
+      if (navigator.wakeLock && !state.travaDeTela) {
+        state.travaDeTela = await navigator.wakeLock.request("screen");
+        state.travaDeTela.addEventListener("release", () => { state.travaDeTela = null; });
+      }
+    } catch (erro) { /* navegador sem suporte: o aviso na tela cobre o resto */ }
+  }
+
+  function soltarTela() {
+    if (!state.travaDeTela) return;
+    try { state.travaDeTela.release(); } catch (erro) { /* já solta */ }
+    state.travaDeTela = null;
+  }
+
   function gravarAgora() {
     state.recording = true;
+    segurarTela();
     state.recordingSamples = [];
     state.recordingStartedAt = Date.now();
     state.recordingDurationMs = duracaoAtualMs();
@@ -569,6 +604,11 @@
   }
 
   function stopRecording(reason = "manual") {
+    soltarTela();
+    if (reason === "page-hidden" && state.recording) {
+      setMessage("A gravação parou porque a tela apagou ou você saiu da página. "
+        + "Mantenha a tela ligada e peça para repetir.", "error");
+    }
     window.clearInterval(state.recordingTimer);
     window.clearInterval(state.countdownTimer);
     if (state.countingDown && !state.recording) {
@@ -674,7 +714,9 @@
   elements["stop-button"].addEventListener("click", () => stopRecording("manual"));
   elements["export-button"].addEventListener("click", exportCsv);
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && state.recording) stopRecording("page-hidden");
+    if (document.hidden && state.recording) return stopRecording("page-hidden");
+    // o sistema solta a trava sozinho ao voltar do segundo plano
+    if (!document.hidden && state.recording) segurarTela();
   });
   /* Sair tem que devolver o número na hora.
 
@@ -692,5 +734,6 @@
     }
   });
 
+  marcarConexao();
   initialize();
 })();
